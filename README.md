@@ -4,9 +4,7 @@
 This project implements a microservices architecture for student certification using Python.
 
 ## Services
-1. Student Information Service: Manages student data
-2. PDF Certification Service: Generates student certificates
-3. Event Notification Service: Handles event streaming
+1. PDF Certification Service: Generates student certificates
 
 ## Setup
 1. Create a virtual environment
@@ -24,17 +22,12 @@ source venv/bin/activate
 pip install -r requirements.txt
 ```
 
-4. Run Services
-- Student Info Service: `python student_service/app.py`
-- PDF Certification Service: `python certification_service/app.py`
-- Event Service: `python event_service/app.py`
-
-5. Run the certification service
+4. Run the certification service
 ```bash
 python certification_service/app.py
 ```
 
-6. Test the certification endpoint
+5. Test the certification endpoint
 ```bash
 curl -X POST http://127.0.0.1:5002/certify/1
 ```
