@@ -156,10 +156,8 @@ def certify_student(student_id):
     try:
         # Use mock student data
         student_data = get_mock_student_data(student_id)
-        
         # Generate Certificate
         certificate_path = generate_certificate(student_data)
-        
         # Log the event instead of publishing
         event_data = {
             'student_id': student_id,
@@ -168,13 +166,17 @@ def certify_student(student_id):
             'status': 'COMPLETED'
         }
         logger.info("Event: %s", json.dumps(event_data))
-        
         return jsonify({
             'message': 'Certificate generated successfully',
             'certificate_path': certificate_path
         }), 200
-    
-    except Exception as e:  # Consider specifying the exception type if possible
+    except KeyError as e:
+        return jsonify({'error': f'Missing data: {str(e)}'}), 400
+    except FileNotFoundError as e:
+        return jsonify({'error': f'File not found: {str(e)}'}), 404
+    except IOError as e:
+        return jsonify({'error': f'I/O error: {str(e)}'}), 500
+    except Exception as e:
         return jsonify({'error': str(e)}), 500
 
 # Run the Flask app
