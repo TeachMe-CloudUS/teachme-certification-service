@@ -91,7 +91,11 @@ def generate_certificate(student_data):
     c.setFont("Helvetica", 18)
     c.drawCentredString(width / 2, height - 200, f"This certifies that {student_data['name']}")
     c.setFont("Helvetica", 16)
-    c.drawCentredString(width / 2, height - 250, f"has successfully completed the course {student_data['course']}")
+    c.drawCentredString(
+        width / 2,
+        height - 250,
+        f"has successfully completed the course {student_data['course']}"
+    )
     c.save()
 
     # Prepare the PDF for signing
@@ -136,6 +140,7 @@ def generate_certificate(student_data):
 
 # Function to get mock student data
 def get_mock_student_data(student_id):
+    """Retrieve mock data for a student given their student ID."""
     return {
         'id': student_id,
         'name': 'Jane Doe',
@@ -169,7 +174,7 @@ def certify_student(student_id):
             'certificate_path': certificate_path
         }), 200
     
-    except Exception as e:
+    except Exception as e:  # Consider specifying the exception type if possible
         return jsonify({'error': str(e)}), 500
 
 # Run the Flask app
