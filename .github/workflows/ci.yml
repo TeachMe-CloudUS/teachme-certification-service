@@ -26,10 +26,17 @@ jobs:
         pip install -r requirements.txt
 
     - name: Lint with pylint
+      id: pylint
       run: |
         source test_venv/bin/activate
         pip install pylint
-        pylint certification_service
+        pylint certification_service > pylint_report.txt || true
+        pylint_score=$(tail -n 2 pylint_report.txt | head -n 1 | awk '{print $7}')
+        echo "Pylint score: $pylint_score"
+        if (( $(echo "$pylint_score < 9.5" | bc -l) )); then
+          echo "Pylint score is below 9.5, failing..."
+          exit 1
+        fi
 
     - name: Run tests
       run: |
