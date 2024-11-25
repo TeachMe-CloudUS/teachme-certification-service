@@ -2,6 +2,7 @@ import pytest
 from unittest.mock import patch
 import os
 import sys
+import requests
 
 # Add project root to Python path
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
