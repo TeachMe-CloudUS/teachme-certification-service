@@ -1,18 +1,22 @@
 # app.py
+"""
+This module provides a certification service using Flask.
+"""
 import os
 import logging
-from flask import Flask, jsonify, request
+import subprocess
+import io
+import json
+
+from flask import Flask, jsonify
 from pyhanko import stamp
 from pyhanko.sign import signers
 from pyhanko.sign.fields import SigFieldSpec, append_signature_field
 from pyhanko.pdf_utils.incremental_writer import IncrementalPdfFileWriter
 from pyhanko.pdf_utils import text
 from dotenv import load_dotenv
-import subprocess
 from reportlab.pdfgen import canvas
 from reportlab.lib.pagesizes import letter
-import io
-import json
 
 # Load environment variables from .env file
 load_dotenv()
@@ -43,6 +47,7 @@ app = Flask(__name__)
 
 # Function to ensure the private key, certificate, and PFX file exist
 def ensure_certificate_and_key_exist():
+    """Ensure that the private key, certificate, and PFX file exist."""
     key_path = os.path.join(CERTIFICATES_DIR, "private.key")
     cert_path = os.path.join(CERTIFICATES_DIR, "certificate.crt")
     pfx_path = os.path.join(CERTIFICATES_DIR, "certificate.pfx")
@@ -51,7 +56,7 @@ def ensure_certificate_and_key_exist():
         logger.info("Private key not found. Generating a new private key...")
         subprocess.run([
             "openssl", "genpkey", "-algorithm", "RSA", "-out", key_path
-        ])
+        ], check=True)
 
     if not os.path.exists(cert_path):
         logger.info("Certificate not found. Generating a new self-signed certificate...")
@@ -59,7 +64,7 @@ def ensure_certificate_and_key_exist():
             "openssl", "req", "-x509", "-nodes", "-days", "365",
             "-newkey", "rsa:2048", "-keyout", key_path, "-out", cert_path,
             "-subj", "/C=US/ST=California/L=San Francisco/O=My Company/OU=Org/CN=localhost"
-        ])
+        ], check=True)
 
     if not os.path.exists(pfx_path):
         logger.info("PFX file not found. Creating a new PFX file...")
@@ -67,13 +72,14 @@ def ensure_certificate_and_key_exist():
             "openssl", "pkcs12", "-export", "-out", pfx_path,
             "-inkey", key_path, "-in", cert_path,
             "-passout", f"pass:{PFX_PASSPHRASE}"
-        ])
+        ], check=True)
 
 # Call the function to ensure the certificate, key, and PFX file exist
 ensure_certificate_and_key_exist()
 
 # Function to generate and sign a PDF certificate
 def generate_certificate(student_data):
+    """Generate and sign a PDF certificate for a student."""
     # Create a PDF in memory
     pdf_buffer = io.BytesIO()
     c = canvas.Canvas(pdf_buffer, pagesize=letter)
@@ -141,6 +147,7 @@ def get_mock_student_data(student_id):
 # Route to certify a student
 @app.route('/certify/<int:student_id>', methods=['POST'])
 def certify_student(student_id):
+    """Certify a student by generating a PDF certificate."""
     try:
         # Use mock student data
         student_data = get_mock_student_data(student_id)
@@ -155,7 +162,7 @@ def certify_student(student_id):
             'certificate_path': certificate_path,
             'status': 'COMPLETED'
         }
-        logger.info(f"Event: {json.dumps(event_data)}")
+        logger.info("Event: %s", json.dumps(event_data))
         
         return jsonify({
             'message': 'Certificate generated successfully',
