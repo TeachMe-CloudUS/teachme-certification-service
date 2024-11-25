@@ -24,6 +24,7 @@ jobs:
         source test_venv/bin/activate
         pip install --upgrade pip
         pip install -r requirements.txt
+        pip install pytest
 
     - name: Lint with pylint
       id: pylint
