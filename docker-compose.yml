@@ -4,42 +4,51 @@ services:
   app:
     build: .
     container_name: certification_service
-    ports:
-      - "${APP_PORT}:5002"
+    env_file:
+      - .env
+      - ./certification_service/.env
     environment:
       - MONGO_USERNAME=${MONGO_USERNAME}
       - MONGO_PASSWORD=${MONGO_PASSWORD}
       - MONGO_DATABASE=${MONGO_DATABASE}
-      - CERTIFICATES_DIR=/app/certificates
-      - PFX_PASSPHRASE=mysecurepassphrase
-      - SIGNATURE_FIELD_NAME=Signature1
-      - SIGNATURE_BOX=150,30,450,90
-      - QR_CODE_URL=https://www.youtube.com/watch?v=dQw4w9WgXcQ
+    ports:
+      - "${APP_PORT}:5002"
     volumes:
       - ./certificates:/app/certificates
     depends_on:
       mongodb:
         condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:5002/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    restart: unless-stopped
 
   mongodb:
     image: mongo:latest
     container_name: certification_mongodb
+    env_file:
+      - .env
     environment:
-      MONGO_INITDB_ROOT_USERNAME: ${MONGO_USERNAME}
-      MONGO_INITDB_ROOT_PASSWORD: ${MONGO_PASSWORD}
+      MONGO_INITDB_ROOT_USERNAME: ${MONGO_INITDB_ROOT_USERNAME}
+      MONGO_INITDB_ROOT_PASSWORD: ${MONGO_INITDB_ROOT_PASSWORD}
       MONGO_INITDB_DATABASE: ${MONGO_DATABASE}
+      MONGO_USERNAME: ${MONGO_USERNAME}
+      MONGO_PASSWORD: ${MONGO_PASSWORD}
     ports:
       - "${MONGO_PORT}:27017"
     volumes:
       - mongodb_data:/data/db
-      - ./mongo-init.sh:/docker-entrypoint-initdb.d/mongo-init.sh:ro
+      - ./mongodb/mongo-init.sh:/docker-entrypoint-initdb.d/mongo-init.sh:ro
     healthcheck:
-      test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')"]
+      test: mongosh --quiet --eval "db.adminCommand('ping')"
       interval: 10s
       timeout: 5s
       retries: 5
-      start_period: 5s
-    command: mongod --auth
+      start_period: 30s
+    command: ["mongod", "--auth"]
 
 volumes:
   mongodb_data:
