@@ -126,3 +126,29 @@ cython_debug/
 
 # Local certificates
 certificates/
+
+# Docker
+mongodb_data/
+.docker/
+
+# IDE specific files
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# macOS specific
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# Project specific
+*.pfx
+*.key
+*.crt
+certification_service.log
+
+# Linting and formatting
+.pylintrc
+.flake8
+.style.yapf

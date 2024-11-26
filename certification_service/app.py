@@ -7,43 +7,57 @@ import logging
 import subprocess
 import io
 import json
-
 from flask import Flask, jsonify
 from pyhanko import stamp
 from pyhanko.sign import signers
 from pyhanko.sign.fields import SigFieldSpec, append_signature_field
 from pyhanko.pdf_utils.incremental_writer import IncrementalPdfFileWriter
+from pyhanko.pdf_utils.reader import PdfFileReader
 from pyhanko.pdf_utils import text
-from dotenv import load_dotenv
+from pyhanko.sign.signers.pdf_signer import PdfSignatureMetadata
+import qrcode
+from datetime import datetime
 from reportlab.pdfgen import canvas
 from reportlab.lib.pagesizes import letter
+from dotenv import load_dotenv
+from database import db_connection
+from health import HealthCheck
 
 # Load environment variables from .env file
 load_dotenv()
 
-# Configuration
+# Set up logging
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
+
+# Initialize Flask app
+app = Flask(__name__)
+
+# Environment variables
 CERTIFICATES_DIR = os.getenv('CERTIFICATES_DIR')
 PFX_PASSPHRASE = os.getenv('PFX_PASSPHRASE')
 SIGNATURE_FIELD_NAME = os.getenv('SIGNATURE_FIELD_NAME')
 SIGNATURE_BOX = tuple(map(int, os.getenv('SIGNATURE_BOX').split(',')))
 QR_CODE_URL = os.getenv('QR_CODE_URL')
 
+# Initialize database connection
+try:
+    db_connection.init_mongodb()
+except Exception as e:
+    logger.error(f"Failed to initialize database: {str(e)}")
+    raise
+
+# Initialize health checker
+health_checker = HealthCheck(
+    service_name='certification-service',
+    dependencies={
+        'database': db_connection,
+        'certificates_dir': CERTIFICATES_DIR
+    }
+)
+
 # Ensure certificates directory exists
 os.makedirs(CERTIFICATES_DIR, exist_ok=True)
-
-# Configure logging
-logging.basicConfig(
-    level=logging.INFO,
-    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
-    handlers=[
-        logging.FileHandler("certification_service.log"),
-        logging.StreamHandler()
-    ]
-)
-logger = logging.getLogger(__name__)
-
-# Initialize Flask app
-app = Flask(__name__)
 
 # Function to ensure the private key, certificate, and PFX file exist
 def ensure_certificate_and_key_exist():
@@ -122,7 +136,7 @@ def generate_certificate(student_data):
     )
 
     # Sign the PDF
-    meta = signers.PdfSignatureMetadata(field_name=SIGNATURE_FIELD_NAME)
+    meta = PdfSignatureMetadata(field_name=SIGNATURE_FIELD_NAME)
     pdf_signer = signers.PdfSigner(meta, signer=signer, stamp_style=qr_stamp_style)
     logger.info("Attempting to sign PDF with QR code...")
     signed_pdf = pdf_signer.sign_pdf(
@@ -137,6 +151,11 @@ def generate_certificate(student_data):
     logger.info("Signed PDF saved successfully.")
 
     return filename
+
+# Function to store a certificate in database
+def store_certificate(certificate_data):
+    """Store a certificate in database and return the stored document."""
+    return db_connection.store_certificate(certificate_data)
 
 # Function to get mock student data
 def get_mock_student_data(student_id):
@@ -156,28 +175,49 @@ def certify_student(student_id):
     try:
         # Use mock student data
         student_data = get_mock_student_data(student_id)
+        
         # Generate Certificate
         certificate_path = generate_certificate(student_data)
-        # Log the event instead of publishing
-        event_data = {
+        
+        # Store certificate in database
+        certificate_data = {
             'student_id': student_id,
             'name': student_data['name'],
             'certificate_path': certificate_path,
+            'course': student_data['course'],
+            'created_at': datetime.now(),
             'status': 'COMPLETED'
         }
-        logger.info("Event: %s", json.dumps(event_data))
+        
+        try:
+            stored_cert = db_connection.store_certificate(certificate_data)
+            logger.info("Certificate stored in database successfully")
+        except Exception as e:
+            logger.error(f"Failed to store certificate in database: {str(e)}")
+            # Continue even if database storage fails
+            stored_cert = None
+        
+        # Log the event
+        logger.info("Certificate generated successfully: %s", json.dumps({
+            'student_id': student_id,
+            'certificate_path': certificate_path
+        }))
+        
         return jsonify({
             'message': 'Certificate generated successfully',
-            'certificate_path': certificate_path
+            'certificate_path': certificate_path,
+            'stored_in_db': stored_cert is not None
         }), 200
-    except KeyError as e:
-        return jsonify({'error': f'Missing data: {str(e)}'}), 400
-    except FileNotFoundError as e:
-        return jsonify({'error': f'File not found: {str(e)}'}), 404
-    except IOError as e:
-        return jsonify({'error': f'I/O error: {str(e)}'}), 500
     except Exception as e:
-        return jsonify({'error': str(e)}), 500
+        error_msg = str(e)
+        logger.error(f"Failed to generate certificate: {error_msg}")
+        return jsonify({'error': error_msg}), 500
+
+# Health check endpoint to verify service and dependency health
+@app.route('/health', methods=['GET'])
+def health_check():
+    """Health check endpoint that verifies service and dependency health."""
+    return jsonify(*health_checker.get_health_status())
 
 # Run the Flask app
 if __name__ == '__main__':
