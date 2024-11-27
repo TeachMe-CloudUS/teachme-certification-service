@@ -1,13 +1,11 @@
 import os
 import time
-import logging
 import urllib.parse
+from logger import logger
 from typing import Optional
 from pymongo import MongoClient
 from pymongo.errors import ConnectionFailure, OperationFailure
 
-# Set up logging
-logger = logging.getLogger(__name__)
 
 class DatabaseConnection:
     def __init__(self, max_retries: int = 5, retry_delay: int = 5):
@@ -92,6 +90,18 @@ class DatabaseConnection:
             raise ValueError("Database connection not initialized")
         result = self.certificates_collection.insert_one(certificate_data)
         return self.certificates_collection.find_one({'_id': result.inserted_id})
+
+
+# Function to get mock student data
+def get_mock_student_data(student_id):
+    """Retrieve mock data for a student given their student ID."""
+    return {
+        'id': student_id,
+        'name': 'Jane Doe',
+        'email': 'jane.doe@example.com',
+        'course': 'Data Science',
+        'graduation_date': '2023-06-30'
+    }
 
 # Create a global instance
 db_connection = DatabaseConnection()
