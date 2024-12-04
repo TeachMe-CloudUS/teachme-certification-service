@@ -99,8 +99,19 @@ def get_mock_student_data(student_id):
         'id': student_id,
         'name': 'Jane Doe',
         'email': 'jane.doe@example.com',
-        'course': 'Data Science',
+        'courseId': 'Data Science',
         'graduation_date': '2023-06-30'
+    }
+
+# Function to get mock course data 
+def get_mock_course_data(course_id):
+    """Retrieve mock data for a course given its course ID."""
+    return {
+        'id': course_id,
+        'name': 'Data Science',
+        'description': 'xyz',
+        'duration': '12 weeks',
+        'start_date': '2023-03-15'
     }
 
 # Create a global instance

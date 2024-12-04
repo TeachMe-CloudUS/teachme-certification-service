@@ -11,26 +11,36 @@ from pyhanko.pdf_utils.incremental_writer import IncrementalPdfFileWriter
 from pyhanko.pdf_utils.reader import PdfFileReader
 from pyhanko.pdf_utils import text
 from pyhanko.sign.signers.pdf_signer import PdfSignatureMetadata
+from database import get_mock_student_data, get_mock_course_data
 
 
-def generate_certificate(student_data):
-    """Generate and sign a PDF certificate for a student."""
+#De
+
+def generate_certificate(student_id,course_id):
+    """Generate and sign a PDF certificate for a student and a specific course."""
+    # Get mock student data
+    student_data = get_mock_student_data(student_id)
+
+    #Get mock course data
+    course_data = get_mock_course_data(course_id)
+
     # Create a PDF in memory
     pdf_buffer = io.BytesIO()
     c = canvas.Canvas(pdf_buffer, pagesize=letter)
     width, height = letter
 
+
     # Add certificate content
     c.setFont("Helvetica-Bold", 24)
     c.drawCentredString(width / 2, height - 100, "Certificate of Completion")
     c.setFont("Helvetica", 18)
-    c.drawCentredString(width / 2, height - 200, f"This certifies that {student_data['name']}")
+    c.drawCentredString(width / 2, height - 200, f"This certifies that {get_mock_student_data['name']}")
     c.setFont("Helvetica", 16)
     c.drawCentredString(
         width / 2,
         height - 250,
-        f"has successfully completed the course {student_data['course']}"
-    )
+        f"has successfully completed the course {course_data['name']} in 
+        {course_data['duration']} on {get_mock_student_data['graduation_date']}.")
     c.save()
 
     # Prepare the PDF for signing
