@@ -39,7 +39,7 @@ class DatabaseConnection:
                 # Set up database and collection
                 database = os.getenv('MONGO_DATABASE', 'certificate_db')
                 self.db = self.client[database]
-                self.certificates_collection = self.db.certificates
+                self.certificates_collection = self.db.student_certificates
                 self._initialized = True
                 
                 logger.info("Successfully connected to MongoDB")
@@ -101,6 +101,15 @@ def get_mock_student_data(student_id):
         'email': 'jane.doe@example.com',
         'course': 'Data Science',
         'graduation_date': '2023-06-30'
+    }
+
+# Function to get mock course data
+def get_mock_course_data(course_id):
+    """Retrieve mock data for a course given its course ID."""
+    return {
+        'courseId': course_id,
+        'courseName': 'Data Science',
+        'courseDescription': 'A comprehensive data science course covering statistics, machine learning, and data visualization.'
     }
 
 # Create a global instance

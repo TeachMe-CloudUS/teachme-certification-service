@@ -66,7 +66,7 @@ def generate_certificate(student_data):
     logger.info("PDF signed with QR code successfully.")
 
     # Save the signed PDF
-    filename = os.path.join(config.CERTIFICATES_DIR, f"certificate_{student_data['id']}.pdf")
+    filename = os.path.join(config.CERTIFICATES_DIR, f"course_{student_data['course']}stud_{student_data['id']}.pdf")
     with open(filename, "wb") as f:
         f.write(signed_pdf.getvalue())
     logger.info("Signed PDF saved successfully.")

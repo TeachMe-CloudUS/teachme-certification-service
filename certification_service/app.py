@@ -9,7 +9,7 @@ import json
 from datetime import datetime
 from flask import Flask, jsonify
 from dotenv import load_dotenv
-from database import db_connection, get_mock_student_data
+from database import db_connection, get_mock_student_data, get_mock_course_data
 from health import HealthCheck
 from course_cert_generator import generate_certificate
 from cert_management import ensure_certificate_and_key_exist
@@ -48,18 +48,21 @@ def certify_student(student_id):
     try:
         # Get mock student data
         student_data = get_mock_student_data(student_id)
+        course_data = get_mock_course_data('C001')  # Example courseId
         
         # Generate Certificate
         certificate_path = generate_certificate(student_data)
         
         # Store certificate in database
         certificate_data = {
-            'student_id': student_id,
-            'name': student_data['name'],
-            'certificate_path': certificate_path,
-            'course': student_data['course'],
-            'created_at': datetime.now(),
-            'status': 'COMPLETED'
+            'studentId': student_id,
+            'firstName': student_data['name'].split()[0],
+            'lastName': student_data['name'].split()[1],
+            'courseId': course_data['courseId'],
+            'courseName': course_data['courseName'],
+            'courseDescription': course_data['courseDescription'],
+            'completionDate': datetime.now(),
+            'certificateLink': certificate_path
         }
         
         try:

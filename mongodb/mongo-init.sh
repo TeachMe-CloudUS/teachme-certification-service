@@ -30,7 +30,7 @@ mongosh admin --quiet <<EOF
 
   // Switch to application database and create collections/indexes
   db = db.getSiblingDB('$MONGO_DATABASE');
-  db.createCollection('certificates');
+  db.createCollection('student_certificates');
   db.certificates.createIndex({ "student_id": 1 });
   db.certificates.createIndex({ "course_id": 1 });
   db.certificates.createIndex({ "certificate_id": 1 }, { unique: true });
