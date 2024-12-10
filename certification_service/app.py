@@ -14,9 +14,11 @@ from health import HealthCheck
 from course_cert_generator import generate_certificate
 from cert_management import ensure_certificate_and_key_exist
 from logger import logger
+from kafka_main import produce_certificate_generated_event, kafka_producer_config, produce_event
+from kafka_utils import create_topic_name, KafkaProducer, KafkaEvent
 from config import CERTIFICATES_DIR
 
-# Load environment variables from .env file
+# Load environment variables from .env file 
 load_dotenv()
 
 # Initialize Flask app
@@ -69,8 +71,23 @@ def certify_student(student_id,course_id):
             logger.error(f"Failed to store certificate in database: {str(e)}")
             # Continue even if database storage fails
             stored_cert = None
+
+        # Only produce the "certificate generated" event if certificate creation and storage are successful
+        if stored_cert:
+            topic_name = create_topic_name('certification_service', 'certificate', 'generated', 'v1')
+            producer = kafka_producer_config()  
+            event = KafkaEvent(service='certification_service', entity='certificate', action='generated', version='v1')
+            produce_event(producer, topic_name, key=str(student_id), event=event)
+            logger.info(f"Event sent to Kafka: {event.to_json()}")
         
-        # Log the event
+        return jsonify({
+            'message': 'Certificate generated successfully',
+            'certificate_path': certificate_path,
+            'stored_in_db': stored_cert is not None
+        }), 200
+    
+        
+    # Log the event
         logger.info("Certificate generated successfully: %s", json.dumps({
             'student_id': student_id,
             'certificate_path': certificate_path
@@ -81,10 +98,83 @@ def certify_student(student_id,course_id):
             'certificate_path': certificate_path,
             'stored_in_db': stored_cert is not None
         }), 200
+    
     except Exception as e:
         error_msg = str(e)
         logger.error(f"Failed to generate certificate: {error_msg}")
         return jsonify({'error': error_msg}), 500
+    
+def update_certificates_for_student(student_id, user_id, phone_number, plan):
+    """
+    Update certificates for a student by:
+    1. Deleting old certificates.
+    2. Creating new certificates with updated data.
+    """
+    try:
+        # Step 1: Delete old certificates (you would need a method to delete from DB or File System)
+        print(f"Deleting old certificates for student {student_id}...")
+        # Example function to delete certificates (implement based on your storage method)
+        # delete_certificates(student_id)
+
+        # Step 2: Generate a new certificate
+        print(f"Creating new certificate for student {student_id} with updated data...")
+        
+        # Get mock student data (this would be fetched from the actual database or API)
+        student_data = get_mock_student_data(student_id)  # Replace this with your actual student data retrieval method
+        
+        # Generate the new certificate (this would call a function like `generate_certificate` for PDF creation)
+        course_id = "updated_course"  # Example, you may retrieve the course ID from the updated event
+        certificate_path = generate_certificate(student_data, course_id)
+
+        # Prepare certificate data to be stored
+        certificate_data = {
+            'student_id': student_id,
+            'name': student_data['name'],
+            'certificate_path': certificate_path,
+            'course': student_data['course'],
+            'created_at': datetime.now(),
+            'status': 'COMPLETED'
+        }
+
+        # Step 3: Store the new certificate in the database
+        try:
+            stored_cert = db_connection.store_certificate(certificate_data)
+            print("Certificate stored in database successfully")
+        except Exception as e:
+            print(f"Failed to store certificate in database: {str(e)}")
+            stored_cert = None
+
+       
+        # Only produce the "certificate updated" event if certificate creation and storage are successful
+        if stored_cert:
+            topic_certificate_updated = create_topic_name('certification_service', 'certificate', 'updated', 'v2')
+            producer = kafka_producer_config() 
+            event = KafkaEvent(service='certification_service', entity='certificate', action='updated', version='v2')
+            produce_event(producer, topic_certificate_updated, key=str(student_id), event=event)
+            logger.info(f"Event sent to Kafka: {event.to_json()}")
+
+        # Return success response
+        return jsonify({
+            'message': 'Certificate updated successfully',
+            'certificate_path': certificate_path,
+            'stored_in_db': stored_cert is not None
+        }), 200
+
+        # Log the event
+        print(f"Certificate generated successfully for student {student_id}: {certificate_path}")
+        
+        # Return success response
+        return jsonify({
+            'message': 'Certificate generated successfully',
+            'certificate_path': certificate_path,
+            'stored_in_db': stored_cert is not None
+        }), 200
+
+    except Exception as e:
+        error_msg = str(e)
+        print(f"Failed to update certificates for student {student_id}: {error_msg}")
+        return jsonify({'error': error_msg}), 500
+
 
 # Get all certificates of one student by student_id
 @app.route('//certificates/<student_id>', methods=['GET'])
@@ -126,7 +216,6 @@ def get_one_course_certificate(student_id, course_id):
 def delete_all_student_certificates(student_id):
     """---Delete all certificate of one student by student_id---"""
     try:
-        # Delete all certificate of one student by student_id
         deleted_certificates = db_connection.delete_certificates_by_student_id(student_id)
         deleted_count = len(deleted_certificates)
 
@@ -137,8 +226,7 @@ def delete_all_student_certificates(student_id):
     except Exception as e:
         app.logger.error(f"Error deleting certificates for student_id {student_id}: {str(e)}")
         return jsonify({"error": "Failed to delete certificates"}), 500
-
-
+    
 # Health check endpoint to verify service and dependency health
 @app.route('/health', methods=['GET'])
 def health_check():

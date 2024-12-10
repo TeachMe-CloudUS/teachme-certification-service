@@ -14,8 +14,7 @@ from pyhanko.sign.signers.pdf_signer import PdfSignatureMetadata
 from database import get_mock_student_data, get_mock_course_data
 
 
-#De
-
+#Define the signature field name and box
 def generate_certificate(student_id,course_id):
     """Generate and sign a PDF certificate for a student and a specific course."""
     # Get mock student data
@@ -37,11 +36,12 @@ def generate_certificate(student_id,course_id):
     c.drawCentredString(width / 2, height - 200, f"This certifies that {get_mock_student_data['name']}")
     c.setFont("Helvetica", 16)
     c.drawCentredString(
-        width / 2,
+         width / 2,
         height - 250,
-        f"has successfully completed the course {course_data['name']} in 
-        {course_data['duration']} on {get_mock_student_data['graduation_date']}.")
-    c.save()
+        f"has successfully completed the course '{course_data['name']}' "  
+        f"in {course_data['duration']} "
+        f"on {get_mock_student_data['graduation_date']}."  
+    )
 
     # Prepare the PDF for signing
     pdf_buffer.seek(0)
