@@ -1,10 +1,9 @@
 import os
 import time
-import urllib.parse
-from logger import logger
 from typing import Optional
 from pymongo import MongoClient
 from pymongo.errors import ConnectionFailure, OperationFailure
+from certification_service.logger import logger
 
 
 class DatabaseConnection:
@@ -91,6 +90,83 @@ class DatabaseConnection:
         result = self.certificates_collection.insert_one(certificate_data)
         return self.certificates_collection.find_one({'_id': result.inserted_id})
 
+
+    def get_course_cert(self, student_id, course_id):
+        """Get certificate for a specific course and student from MongoDB."""
+        try:
+            # Assuming 'certificates' is the collection name in MongoDB
+            certificate = self.certificates_collection.find_one({
+                'student_id': student_id, 
+                'course_id': course_id
+            })
+            
+            if certificate:
+                return {
+                    'student_id': certificate['student_id'],
+                    'course_id': certificate['course_id'],
+                    'certificate_path': certificate['certificate_path'],
+                    'created_at': certificate['created_at'],
+                    'status': certificate['status']
+                }
+            else:
+                # Log that no certificate was found
+                logger.warning(f"No certificate found for student {student_id} in course {course_id}")
+                return None
+        
+        except Exception as e:
+            # Log any database errors
+            logger.error(f"Error retrieving certificate: {str(e)}")
+            raise
+
+    def get_all_course_certs(self, student_id):
+        """Retrieve all certificates for a specific student from MongoDB."""
+        try:
+            # Find all certificates for the given student_id
+            certificates = list(self.certificates_collection.find({
+                'student_id': student_id
+            }))
+            
+            if certificates:
+                # Transform MongoDB documents into a list of certificate details
+                formatted_certificates = [{
+                    'student_id': cert['student_id'],
+                    'course_id': cert['course_id'],
+                    'certificate_path': cert['certificate_path'],
+                    'created_at': cert['created_at'],
+                    'status': cert['status']
+                } for cert in certificates]
+                
+                return formatted_certificates
+            else:
+                # Log that no certificates were found
+                logger.warning(f"No certificates found for student {student_id}")
+                return []
+        
+        except Exception as e:
+            # Log any database errors
+            logger.error(f"Error retrieving certificates for student {student_id}: {str(e)}")
+            raise
+
+    def delete_all_certs(self, student_id):
+        """Delete all certificates for a specific student from MongoDB."""
+        try:
+            # Delete all certificates from the database
+            delete_result = self.certificates_collection.delete_many({
+                'student_id': student_id
+            })
+            
+            # Log the deletion
+            if delete_result.deleted_count > 0:
+                logger.info(f"Deleted {delete_result.deleted_count} certificates for student {student_id}")
+            else:
+                logger.warning(f"No certificates found to delete for student {student_id}")
+            
+            return delete_result.deleted_count
+        
+        except Exception as e:
+            # Log any database errors
+            logger.error(f"Error deleting certificates for student {student_id}: {str(e)}")
+            raise
 
 # Function to get mock student data
 def get_mock_student_data(student_id):

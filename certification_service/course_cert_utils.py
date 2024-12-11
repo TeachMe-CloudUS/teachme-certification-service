@@ -1,17 +1,16 @@
 import io
 import os
-import config
-from logger import logger
 from reportlab.pdfgen import canvas
 from reportlab.lib.pagesizes import letter
 from pyhanko import stamp
 from pyhanko.sign import signers
 from pyhanko.sign.fields import SigFieldSpec, append_signature_field
 from pyhanko.pdf_utils.incremental_writer import IncrementalPdfFileWriter
-from pyhanko.pdf_utils.reader import PdfFileReader
 from pyhanko.pdf_utils import text
 from pyhanko.sign.signers.pdf_signer import PdfSignatureMetadata
-from database import get_mock_student_data, get_mock_course_data
+from certification_service.logger import logger
+from certification_service.database import db_connection, get_mock_student_data, get_mock_course_data
+
 
 
 #Define the signature field name and box
@@ -33,14 +32,14 @@ def generate_certificate(student_id,course_id):
     c.setFont("Helvetica-Bold", 24)
     c.drawCentredString(width / 2, height - 100, "Certificate of Completion")
     c.setFont("Helvetica", 18)
-    c.drawCentredString(width / 2, height - 200, f"This certifies that {get_mock_student_data['name']}")
+    c.drawCentredString(width / 2, height - 200, f"This certifies that {student_data['name']}")
     c.setFont("Helvetica", 16)
     c.drawCentredString(
          width / 2,
         height - 250,
-        f"has successfully completed the course '{course_data['name']}' "  
+        f"has successfully completed the course '{course_data['name']}' "
         f"in {course_data['duration']} "
-        f"on {get_mock_student_data['graduation_date']}."  
+        f"on {student_data['graduation_date']}."
     )
 
     # Prepare the PDF for signing
@@ -82,3 +81,35 @@ def generate_certificate(student_id,course_id):
     logger.info("Signed PDF saved successfully.")
 
     return filename
+
+def certify_student(student_id, course_id):
+    """Generate and sign a PDF certificate for a student and a specific course."""
+    certificate_path = generate_certificate(student_id, course_id)
+    return certificate_path
+
+def update_certs(student_id):
+    """Update certificates for a student and return list of updated certificates."""
+    # Implement the logic to update certificates
+    dummy_path_list = [os.path.join(config.CERTIFICATES_DIR, f"dummy_certificate_{student_id}.pdf")]
+    return dummy_path_list
+
+def get_all_certs(student_id):
+    """Get all certificates for a student."""
+    # Implement the logic to get all certificates
+    course_list = [69]
+    return course_list
+
+def get_cert(student_id, course_id):
+    """Get certificate for a specific course and student."""
+    # Implement the logic to get a specific certificate
+    cert_link = db_connection.get_course_cert(student_id, course_id)
+    return cert_link
+
+def delete_all_certs(student_id):
+    """Delete all certificates for a student."""
+    # Implement the logic to delete certificates
+    #Delete first all certificates form blob and then links from db
+    deleted_cert_count = db_connection.delete_all_certs(student_id)
+    return deleted_cert_count
+
+

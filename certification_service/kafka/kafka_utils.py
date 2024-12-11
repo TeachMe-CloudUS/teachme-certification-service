@@ -20,17 +20,34 @@ def kafka_consumer_config():
     }
     return Consumer(config)
 
+def create_topic_name(service: str, entity: str, action: str, version: str = 'v1') -> str:
+    """
+    Create a standardized Kafka topic name.
+    
+    Args:
+        service (str): The service name (e.g., 'certification_service')
+        entity (str): The entity type (e.g., 'certificate')
+        action (str): The action being performed (e.g., 'generated')
+        version (str, optional): The version of the topic. Defaults to 'v1'.
+    
+    Returns:
+        str: A formatted Kafka topic name
+    """
+    return f"{service}.{entity}.{action}.{version}"
+
 @dataclass
 class StudentUpdateEvent:
     student_id: str
     user_id: str
+    phone_number: str
     
     @staticmethod
     def from_json(data: dict):
         """Convert a dictionary (e.g., from Kafka message) to a StudentUpdateEvent object."""
         return StudentUpdateEvent(
             student_id=data["studentId"],
-            user_id=data["userId"]
+            user_id=data["userId"],
+            phone_number=data["phoneNumber"]
         )
 
     def to_json(self):
@@ -82,6 +99,3 @@ class KafkaEvent:
     def to_json(self):
         """Convert the event to a JSON string."""
         return json.dumps(self.to_dict())
-    
- 
-

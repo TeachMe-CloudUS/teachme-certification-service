@@ -1,8 +1,9 @@
-from kafka_utils import kafka_producer_config, kafka_consumer_config, KafkaEvent, create_topic_name
+
 import json
-from app import CourseCompletedEvent, certify_student, update_certificates_for_student
-from kafka_utils import StudentUpdateEvent
 from confluent_kafka import KafkaError
+from certification_service.kafka.kafka_utils import kafka_producer_config, kafka_consumer_config, KafkaEvent, create_topic_name
+from certification_service.kafka.kafka_utils import StudentUpdateEvent, CourseCompletedEvent
+
 
 # Kafka configuration
 producer = kafka_producer_config()
@@ -42,12 +43,10 @@ def consume_course_completed_events(consumer, topics, timeout=1.0):
             print(f"Consumed event: {event}")
 
             # Certifaction - creation
-            success = certify_student(
-                student_id=event.student_id,
-                course_id=event.course_id,
-                user_id=event.user_id,
-                enrollment_date=event.enrollment_date
-            )
+            # success = certify_student(
+            #     student_id=event.student_id,
+            #     course_id=event.course_id,
+            # )
             #if success:
                # print(f"Certificate created successfully for student {event.student_id}.")
             #else:
@@ -77,10 +76,10 @@ def consume_student_update_events(consumer, topics, timeout=1.0):
             print(f"Consumed event: {event}")
 
             # Call the method to update certificates
-            update_certificates_for_student(
-                student_id=event.student_id,
-                user_id=event.user_id
-            )
+            # update_certificates_for_student(
+            #     student_id=event.student_id,
+            #     user_id=event.user_id
+            # )
         except json.JSONDecodeError as e:
             print(f"Error decoding JSON: {e}")
 
@@ -91,7 +90,3 @@ topic_certificate_generated = create_topic_name('certification_service', 'certif
 
 # Topic name for certificate update
 topic_certificate_updated = create_topic_name('certification_service', 'certificate', 'updated', 'v1')
-
-
-
-
