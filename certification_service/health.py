@@ -1,8 +1,6 @@
 import os
-import logging
 from datetime import datetime
 from typing import Dict, Any
-from logger import logger
 
 class HealthCheck:
     def __init__(self, service_name: str, dependencies: Dict[str, Any]):

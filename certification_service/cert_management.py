@@ -1,21 +1,21 @@
 import os
 import subprocess
-import config
 from dotenv import load_dotenv
-from logger import logger
+from certification_service.logger import logger
+from certification_service.config import CERTIFICATES_DIR
 
 # Load environment variables from .env file
 load_dotenv()
 
 # Ensure certificates directory exists
-os.makedirs(config.CERTIFICATES_DIR, exist_ok=True)
+os.makedirs(CERTIFICATES_DIR, exist_ok=True)
 
 
 def ensure_certificate_and_key_exist():
     """Ensure that the private key, certificate, and PFX file exist."""
-    key_path = os.path.join(config.CERTIFICATES_DIR, "private.key")
-    cert_path = os.path.join(config.CERTIFICATES_DIR, "certificate.crt")
-    pfx_path = os.path.join(config.CERTIFICATES_DIR, "certificate.pfx")
+    key_path = os.path.join(CERTIFICATES_DIR, "private.key")
+    cert_path = os.path.join(CERTIFICATES_DIR, "certificate.crt")
+    pfx_path = os.path.join(CERTIFICATES_DIR, "certificate.pfx")
 
     if not os.path.exists(key_path):
         logger.info("Private key not found. Generating a new private key...")
