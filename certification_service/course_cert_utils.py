@@ -10,6 +10,7 @@ from pyhanko.pdf_utils import text
 from pyhanko.sign.signers.pdf_signer import PdfSignatureMetadata
 from certification_service.logger import logger
 from certification_service.database import db_connection, get_mock_student_data, get_mock_course_data
+import certification_service.config as config
 
 
 

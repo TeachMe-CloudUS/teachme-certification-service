@@ -2,7 +2,7 @@ import os
 import subprocess
 from dotenv import load_dotenv
 from certification_service.logger import logger
-from certification_service.config import CERTIFICATES_DIR
+from certification_service.config import CERTIFICATES_DIR, PFX_PASSPHRASE
 
 # Load environment variables from .env file
 load_dotenv()
@@ -36,5 +36,5 @@ def ensure_certificate_and_key_exist():
         subprocess.run([
             "openssl", "pkcs12", "-export", "-out", pfx_path,
             "-inkey", key_path, "-in", cert_path,
-            "-passout", f"pass:{config.PFX_PASSPHRASE}"
+            "-passout", f"pass:{PFX_PASSPHRASE}"
         ], check=True)
