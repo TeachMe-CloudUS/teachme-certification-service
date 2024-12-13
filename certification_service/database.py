@@ -4,6 +4,7 @@ from typing import Optional
 from pymongo import MongoClient
 from pymongo.errors import ConnectionFailure, OperationFailure
 from certification_service.logger import logger
+from datetime import datetime
 
 
 class DatabaseConnection:
@@ -83,13 +84,20 @@ class DatabaseConnection:
         except Exception as e:
             return False, str(e)
 
-    def store_certificate(self, certificate_data):
+    def store_certificate(self, student_id, course_id, blob_link, completion_date):
         """Store a certificate in MongoDB and return the stored document."""
         if not self._initialized:
             raise ValueError("Database connection not initialized")
+        
+        certificate_data = {
+            'student_id': student_id,
+            'course_id': course_id,
+            'completion_date': completion_date,
+            'blob_link': blob_link
+        }
+        
         result = self.certificates_collection.insert_one(certificate_data)
         return self.certificates_collection.find_one({'_id': result.inserted_id})
-
 
     def get_course_cert(self, student_id, course_id):
         """Get certificate for a specific course and student from MongoDB."""
@@ -168,15 +176,24 @@ class DatabaseConnection:
             logger.error(f"Error deleting certificates for student {student_id}: {str(e)}")
             raise
 
-# Function to get mock student data
-def get_mock_student_data(student_id):
-    """Retrieve mock data for a student given their student ID."""
-    return {
-        'id': student_id,
-        'name': 'Jane Doe',
+
+    mock_student = {
+        'id': '69',
+        'userId': '069',
+        'name': 'Jane',
+        'surname': 'Doe',
         'email': 'jane.doe@example.com',
         'courseId': 'Data Science',
         'graduation_date': '2023-06-30'
+    }
+    mock_course = {
+        'id': 'DS101',
+        'name': 'Introduction to Data Science',
+        'category': 'Technology',
+        'description': 'A comprehensive introduction to data science principles and techniques',
+        'duration': '12 weeks',
+        'completionDate': '2024-06-30',
+        'level': 'Beginner'
     }
 
 # Function to get mock course data 
