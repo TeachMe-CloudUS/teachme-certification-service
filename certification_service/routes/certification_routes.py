@@ -14,7 +14,12 @@ def route_certify_student(student_id, course_id):
 def route_certify():
     """Certify a student by generating a PDF certificate."""
     success = certify_student(None, None)
-    return jsonify({"success": success}), 200 if success else 400
+    if not success:
+        return jsonify({
+            "Error": "Certification failed, possible reasons: "
+            "Certificate already exists or missing or invalid student/course data"
+        }), 500
+    return jsonify({"success": success}), 200
 
 @certification_bp.route('/certificates/<int:student_id>', methods=['GET'])
 def route_get_all_certificates(student_id):

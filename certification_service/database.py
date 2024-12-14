@@ -1,7 +1,7 @@
 import os
 import time
 from typing import Optional
-from pymongo import MongoClient
+from pymongo import MongoClient, errors
 from pymongo.errors import ConnectionFailure, OperationFailure
 from certification_service.logger import logger
 from datetime import datetime
@@ -21,7 +21,7 @@ class DatabaseConnection:
         retry_count = 0
         last_exception = None
 
-        mongodb_uri = os.getenv('MONGODB_URI_USER')
+        mongodb_uri = os.getenv('MONGODB_URI_ADMIN')
         if not mongodb_uri:
             raise ValueError("Missing required MONGODB_URI_ADMIN environment variable")
         else:
@@ -33,14 +33,24 @@ class DatabaseConnection:
                     logger.info("Attempting to connect to MongoDB...")
                     self.client = MongoClient(mongodb_uri)
                 
-                # Test the connection
-                self.client.admin.command('ping')
                 
                 # Set up database and collection
-                database = os.getenv('MONGO_DATABASE', 'certificate_db')
-                self.db = self.client[database]
-                self.certificates_collection = self.db.student_certificates
-                self._initialized = True
+                database = os.getenv('MONGO_DATABASE')
+                collection_name = os.getenv('MONGO_COLLECTION_NAME')
+                if database is None:
+                    logger.error("Missing required MONGO_DATABASE environment variable")
+                    raise ValueError("Missing required MONGO_DATABASE environment variable")
+                else:
+                    self.db = self.client[database]
+
+                
+                if self.db is None:
+                    logger.error(f"Database '{database}' not found")
+                    raise ValueError(f"Database '{database}' not found")
+                else:
+                    logger.info(f"Using database: {database}")
+                    self.certificates_collection = self.db[collection_name]
+                    self._initialized = True
                 
                 logger.info("Successfully connected to MongoDB")
                 return self.client
@@ -84,20 +94,37 @@ class DatabaseConnection:
         except Exception as e:
             return False, str(e)
 
-    def store_certificate(self, student_id, course_id, blob_link, completion_date):
+    def store_certificate(self, student, course, blob_link):
         """Store a certificate in MongoDB and return the stored document."""
         if not self._initialized:
             raise ValueError("Database connection not initialized")
         
         certificate_data = {
-            'student_id': student_id,
-            'course_id': course_id,
-            'completion_date': completion_date,
+            'student_id': str(student['id']),
+            'name': student['name'],
+            'surname': student['surname'],
+            'email': student['email'],
+            'course_id': str(course['id']),
+            'graduation_date': datetime.strptime(student['graduation_date'], "%Y-%m-%d"),
             'blob_link': blob_link
         }
+        try:
+
+            result = self.certificates_collection.insert_one(certificate_data)
+            
+            if not result.acknowledged:
+                logger.error(f"Failed to store certificate for student {student['id']} in course {course['id']}")
+                return None
+            
+            return self.certificates_collection.find_one({'_id': result.inserted_id})
         
-        result = self.certificates_collection.insert_one(certificate_data)
-        return self.certificates_collection.find_one({'_id': result.inserted_id})
+        except errors.DuplicateKeyError:
+            logger.warning(f"Certificate already exists for student {student['id']} in course {course['id']}")
+            return None
+    
+        except Exception as e:
+            logger.error(f"Unexpected error storing certificate: {e}")
+            raise
 
     def get_course_cert(self, student_id, course_id):
         """Get certificate for a specific course and student from MongoDB."""
@@ -109,21 +136,15 @@ class DatabaseConnection:
             })
             
             if certificate:
-                return {
-                    'student_id': certificate['student_id'],
-                    'course_id': certificate['course_id'],
-                    'certificate_path': certificate['certificate_path'],
-                    'created_at': certificate['created_at'],
-                    'status': certificate['status']
-                }
+                return certificate['blob_link']
             else:
                 # Log that no certificate was found
-                logger.warning(f"No certificate found for student {student_id} in course {course_id}")
+                logger.warning(f"No blob link to certificate found for student {student_id} in course {course_id}")
                 return None
         
         except Exception as e:
             # Log any database errors
-            logger.error(f"Error retrieving certificate: {str(e)}")
+            logger.error(f"Error retrieving blob link certificate for student {student_id} in course {course_id}: {str(e)}")
             raise
 
     def get_all_course_certs(self, student_id):
@@ -135,45 +156,43 @@ class DatabaseConnection:
             }))
             
             if certificates:
-                # Transform MongoDB documents into a list of certificate details
-                formatted_certificates = [{
-                    'student_id': cert['student_id'],
-                    'course_id': cert['course_id'],
-                    'certificate_path': cert['certificate_path'],
-                    'created_at': cert['created_at'],
-                    'status': cert['status']
-                } for cert in certificates]
-                
-                return formatted_certificates
+                return [cert['blob_link'] for cert in certificates]
             else:
                 # Log that no certificates were found
-                logger.warning(f"No certificates found for student {student_id}")
+                logger.warning(f"No blob links to certificates found for student {student_id}")
                 return []
         
         except Exception as e:
             # Log any database errors
-            logger.error(f"Error retrieving certificates for student {student_id}: {str(e)}")
+            logger.error(f"Error retrieving blob links to certificates for student {student_id}: {str(e)}")
             raise
 
     def delete_all_certs(self, student_id):
         """Delete all certificates for a specific student from MongoDB."""
         try:
-            # Delete all certificates from the database
-            delete_result = self.certificates_collection.delete_many({
-                'student_id': student_id
+            # Find certificates for the student
+            certificates = list(self.certificates_collection.find({
+                'student_id': str(student_id)  # Ensure student_id is converted to string
+            }))
+            
+            # Log found certificates
+            logger.info(f"Found {len(certificates)} certificates for student {student_id}")
+            
+            # Delete all certificates for the student
+            result = self.certificates_collection.delete_many({
+                'student_id': str(student_id)
             })
             
-            # Log the deletion
-            if delete_result.deleted_count > 0:
-                logger.info(f"Deleted {delete_result.deleted_count} certificates for student {student_id}")
-            else:
-                logger.warning(f"No certificates found to delete for student {student_id}")
+            # Log deletion result
+            logger.info(f"Deleted {result.deleted_count} certificates for student {student_id}")
             
-            return delete_result.deleted_count
+            return result.deleted_count
         
         except Exception as e:
-            # Log any database errors
+            # Log any database errors with full traceback
             logger.error(f"Error deleting certificates for student {student_id}: {str(e)}")
+            import traceback
+            logger.error(traceback.format_exc())
             raise
 
 

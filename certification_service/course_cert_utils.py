@@ -87,6 +87,14 @@ def certify_student(student=None, course=None):
     blob_url = blob_storage_service.upload_file_from_stream(cert_stream, blob_name)
     logger.info(f"Signed PDF uploaded to: {blob_url}")
 
+    #TO DO: Create a class and use it as parameter instead of adding 
+    stored_cert = db_connection.store_certificate(student_data, course_data, blob_url)
+    
+    if not stored_cert:
+        logger.error(f"Failed to store certificate for student {student_data['id']} in course {course_data['id']}")
+        blob_storage_service.delete_blob(blob_name)
+        return None
+
     return blob_url
 
 def update_certs(student_id):

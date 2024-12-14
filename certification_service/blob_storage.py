@@ -92,5 +92,25 @@ class BlobStorageService:
             logger.error(f"Error downloading blob {blob_name}: {e}")
             raise
 
+
+    def delete_blob(self, blob_name):
+        """Delete a blob from Azure Blob Storage."""
+        try:
+            # Get the blob client
+            blob_client = self.blob_service_client.get_blob_client(
+                container=self.container_name, 
+                blob=blob_name
+            )
+            
+            # Delete the blob
+            blob_client.delete_blob()
+            
+            logger.info(f"Blob '{blob_name}' deleted successfully")
+            return True
+        
+        except Exception as e:
+            logger.error(f"Error deleting blob '{blob_name}': {e}")
+            return False
+            
 # Create a global instance for easy import
 blob_storage_service = BlobStorageService()
