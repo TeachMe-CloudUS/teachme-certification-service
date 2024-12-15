@@ -106,7 +106,7 @@ def update_certs(student_id):
 def get_all_certs(student_id):
     """Get all certificates for a student."""
     # Implement the logic to get all certificates
-    course_list = [69]
+    course_list = db_connection.get_all_course_certs(student_id)
     return course_list
 
 def get_cert(student_id, course_id):

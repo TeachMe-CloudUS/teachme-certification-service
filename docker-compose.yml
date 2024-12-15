@@ -95,6 +95,7 @@ services:
       - AZURE_STORAGE_ACCOUNT_KEY=${AZURE_STORAGE_ACCOUNT_KEY}
       - BLOB_STORAGE_CONTAINER_NAME=${BLOB_STORAGE_CONTAINER_NAME}
       - BLOB_STORAGE_CONNECTION_STRING=${BLOB_STORAGE_CONNECTION_STRING}
+
     expose:
       - 10000
       - 10001
@@ -105,6 +106,41 @@ services:
       - "10002:10002"
     volumes:
       - blob-storage-volume:/data mcr.microsoft.com/azure-storage/azurite
+    networks:
+      - certification-service-network
+
+  test_runner:
+    build: 
+      context: .
+      dockerfile: Dockerfile.test
+    env_file:
+      - .env
+    depends_on:
+      - mongodb
+      - azurite
+      - app
+      - kafka
+      - zookeeper
+    environment:
+      - AZURE_STORAGE_ACCOUNT_NAME=${AZURE_STORAGE_ACCOUNT_NAME}
+      - AZURE_STORAGE_ACCOUNT_KEY=${AZURE_STORAGE_ACCOUNT_KEY}
+      - BLOB_STORAGE_CONTAINER_NAME=${BLOB_STORAGE_CONTAINER_NAME}
+      - BLOB_STORAGE_CONNECTION_STRING=${BLOB_STORAGE_CONNECTION_STRING}
+      - MONGO_USERNAME=${MONGO_USERNAME}
+      - MONGO_PASSWORD=${MONGO_PASSWORD}
+      - MONGO_DATABASE=${MONGO_DATABASE}
+      - MONGO_INITDB_ROOT_USERNAME = ${MONGO_INITDB_ROOT_USERNAME}
+      - MONGO_INITDB_ROOT_PASSWORD = ${MONGO_INITDB_ROOT_PASSWORD}
+      - MONGO_INITDB_DATABASE = ${MONGO_DATABASE}
+      - MONGO_COLLECTION_NAME = ${MONGO_COLLECTION_NAME}
+      - MONGODB_URI_USER = ${MONGODB_URI_USER}
+      - MONGODB_URI_USER = ${MONGODB_URI_ADMIN}
+    command: >
+      sh -c "
+        echo 'Waiting for services to be ready...' &&
+        sleep 15 &&
+        pytest tests/integration
+      "
     networks:
       - certification-service-network
 

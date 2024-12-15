@@ -131,8 +131,8 @@ class DatabaseConnection:
         try:
             # Assuming 'certificates' is the collection name in MongoDB
             certificate = self.certificates_collection.find_one({
-                'student_id': student_id, 
-                'course_id': course_id
+                'id': student_id, 
+                'courseId': course_id
             })
             
             if certificate:
@@ -152,7 +152,7 @@ class DatabaseConnection:
         try:
             # Find all certificates for the given student_id
             certificates = list(self.certificates_collection.find({
-                'student_id': student_id
+                'id': student_id
             }))
             
             if certificates:
