@@ -9,6 +9,7 @@ from certification_service.routes.certification_routes import certification_bp
 from certification_service.routes.monitoring_routes import monitoring_bp
 from certification_service.cert_management import ensure_certificate_and_key_exist
 from certification_service.database import db_connection
+from certification_service.kafka.consumer import start_consumer
 
 # Register the Blueprint
 def create_app():
@@ -20,6 +21,15 @@ def create_app():
     except Exception as e:
         logger.error(f"Failed to initialize database: {str(e)}")
         raise
+    
+    # Initialize kafka
+    try:
+        start_consumer() 
+        logger.info("Kafka consumer started") 
+    except Exception as e:
+        logger.error(f"Failed to initialize kafkaconsumer: {str(e)}")
+        raise
+
 
     # Call the function to ensure the certificate, key, and PFX file exist
     ensure_certificate_and_key_exist()
@@ -27,14 +37,7 @@ def create_app():
     app.register_blueprint(certification_bp)
     app.register_blueprint(monitoring_bp)
 
+
     return app
 
-# Load environment variables from .env file 
-load_dotenv()
-
-# Global app instance
-app = create_app()
-
-# Run the Flask app
-if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=5002, debug=True)
+# Load environment variab        

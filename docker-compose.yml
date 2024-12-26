@@ -24,6 +24,8 @@ services:
       retries: 3
       start_period: 40s
     restart: unless-stopped
+    networks:
+      - certification-service-network
 
   mongodb:
     image: mongo:latest
@@ -49,6 +51,8 @@ services:
       retries: 5
       start_period: 30s
     command: ["mongod", "--config", "/etc/mongo/mongod.conf"]
+    networks:
+      - certification-service-network
 
 
   zookeeper:
@@ -57,7 +61,9 @@ services:
         ZOOKEEPER_CLIENT_PORT: 2181
         ZOOKEEPER_TICK_TIME: 2000
       ports:
-        - "2181:2181"  
+        - "2181:2181" 
+      networks:
+      - certification-service-network   
     
   kafka:
       image: confluentinc/cp-kafka:latest
@@ -79,12 +85,17 @@ services:
         KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT  # Nur PLAINTEXT (kein SSL)
         KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT  # Interner Listener für Broker
         KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1  # Replikation für Offsets
-
+      networks:
+      - certification-service-network
 
 volumes:
     mongodb_data:
     kafka_data:
     zookeeper_data:
+
+networks:
+  certification-service-network:
+    driver: bridge
 
 
 
