@@ -1,4 +1,3 @@
-
 services:
   app:
     build: .
@@ -17,6 +16,8 @@ services:
     depends_on:
       mongodb:
         condition: service_healthy
+      kafka:
+        condition: service_healthy  
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:5002/health"]
       interval: 30s
@@ -31,7 +32,7 @@ services:
     image: mongo:latest
     container_name: certification_mongodb
     env_file:
-      - .env
+      - .env.test
     environment:
       MONGO_INITDB_ROOT_USERNAME: ${MONGO_INITDB_ROOT_USERNAME}
       MONGO_INITDB_ROOT_PASSWORD: ${MONGO_INITDB_ROOT_PASSWORD}
@@ -39,64 +40,82 @@ services:
       MONGO_USERNAME: ${MONGO_USERNAME}
       MONGO_PASSWORD: ${MONGO_PASSWORD}
     ports:
-      - "${MONGO_PORT}:27017"
+      - "27017:27017"
     volumes:
       - mongodb_data:/data/db
       - ./mongodb/mongo-init.sh:/docker-entrypoint-initdb.d/mongo-init.sh:ro
-      - ./mongodb/mongod.conf:/etc/mongo/mongod.conf
+      - ./mongodb/mongod.conf:/etc/mongod.conf
+    command: mongod --auth --config /etc/mongod.conf
     healthcheck:
       test: mongosh --quiet --eval "db.adminCommand('ping')"
       interval: 10s
       timeout: 5s
       retries: 5
       start_period: 30s
-    command: ["mongod", "--config", "/etc/mongo/mongod.conf"]
     networks:
       - certification-service-network
 
-
   zookeeper:
-      image: confluentinc/cp-zookeeper:latest
-      environment:
-        ZOOKEEPER_CLIENT_PORT: 2181
-        ZOOKEEPER_TICK_TIME: 2000
-      ports:
-        - "2181:2181" 
-      networks:
-      - certification-service-network   
-    
+    image: confluentinc/cp-zookeeper:latest
+    environment:
+      ZOOKEEPER_CLIENT_PORT: 2181
+      ZOOKEEPER_TICK_TIME: 2000
+    ports:
+      - "2181:2181" 
+    networks:
+      - certification-service-network
+
   kafka:
-      image: confluentinc/cp-kafka:latest
-      depends_on:
+    image: confluentinc/cp-kafka:latest
+    container_name: teachme-certification-service-kafka-1
+    depends_on:
       - zookeeper
-      ports:
-      - '9092:9092'
-      environment:
-        KAFKA_BROKER_ID: 1
-        KAFKA_LISTENER_SECURITY_PROTOCOL: PLAINTEXT  # Ohne SSL
-        KAFKA_LISTENER_NAME_INTERNAL: INSIDE
-        KAFKA_LISTENER_PORT: 9093  # Interner Listener Port
-        KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092  # Werbung für den Broker
-        KAFKA_LISTENER_INTERNAL_HOST: kafka  # Interne Host-Konfiguration
-        KAFKA_LISTENER_INTERNAL_PORT: 9093
-        KAFKA_LISTENER_EXTERNAL_HOST: kafka  # Externe Host-Konfiguration
-        KAFKA_LISTENER_EXTERNAL_PORT: 9092
-        KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181  # Verbindung zu Zookeeper
-        KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT  # Nur PLAINTEXT (kein SSL)
-        KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT  # Interner Listener für Broker
-        KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1  # Replikation für Offsets
-      networks:
+    ports:
+      - "9092:9092"
+    environment:
+      KAFKA_BROKER_ID: 1
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:29092,PLAINTEXT_HOST://localhost:9092
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT
+      KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_AUTO_CREATE_TOPICS_ENABLE: "true"
+    healthcheck:
+      test: ["CMD", "kafka-topics", "--bootstrap-server", "localhost:9092", "--list"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+    networks:
+      - certification-service-network
+
+  test:
+    build:
+      context: .
+      dockerfile: Dockerfile.test
+    container_name: certification_service_tests
+    env_file:
+      - .env.test
+    environment:
+      - KAFKA_BROKER=kafka:29092
+      - FLASK_ENV=testing
+    volumes:
+      - ./certification_service:/app/certification_service
+      - ./tests:/app/tests
+      - ./certificates:/app/certificates
+    depends_on:
+      kafka:
+        condition: service_healthy
+      mongodb:
+        condition: service_healthy
+    networks:
       - certification-service-network
 
 volumes:
-    mongodb_data:
-    kafka_data:
-    zookeeper_data:
+  mongodb_data:
+  kafka_data:
+  zookeeper_data:
 
 networks:
   certification-service-network:
     driver: bridge
-
-
-
-  

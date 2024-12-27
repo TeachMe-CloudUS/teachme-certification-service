@@ -11,7 +11,7 @@ from pyhanko.sign.signers.pdf_signer import PdfSignatureMetadata
 from certification_service.logger import logger
 from certification_service.database import db_connection, get_mock_student_data, get_mock_course_data
 import certification_service.config as config
-
+from certification_service.kafka.producer import send_certification_notification
 
 
 #Define the signature field name and box
@@ -85,8 +85,16 @@ def generate_certificate(student_id,course_id):
 
 def certify_student(student_id, course_id):
     """Generate and sign a PDF certificate for a student and a specific course."""
-    certificate_path = generate_certificate(student_id, course_id)
-    return certificate_path
+    try:
+        certificate_path = generate_certificate(student_id, course_id)  # Your logic to generate the certificate
+        # If the certificate generation is successful, notify via Kafka
+        send_certification_notification(student_id, course_id, success=True)
+        
+        return certificate_path 
+    except Exception as e:
+        # If an error occurs during certification, send failure notification
+        send_certification_notification(student_id, course_id, success=False, error_message=str(e))
+        raise  
 
 def update_certs(student_id):
     """Update certificates for a student and return list of updated certificates."""

@@ -1,6 +1,6 @@
 from confluent_kafka import Consumer, KafkaError
 import json
-from certification_service.cert_management import certify_student
+from certification_service.course_cert_utils import certify_student
 from certification_service.logger import logger
 from certification_service.kafka.events import create_topic_name
 
@@ -24,15 +24,25 @@ def process_event(msg):
     except Exception as e:
         logger.exception("Error processing event: %s", e)
 
-def consume_course_completed_events(consumer, topics, timeout=1.0):
+def consume_course_completed_events(consumer, topics, timeout=1.0, max_empty_polls=10):
     """Consume course completed events from Kafka."""
     consumer.subscribe([topics])
     logger.info("Consumer started and subscribed to topics: %s", topics)
+    
+    empty_poll_count = 0
+
     try:
         while True:
             msg = consumer.poll(timeout)
             if msg is None:
+                empty_poll_count += 1
+                if empty_poll_count >= max_empty_polls:
+                    logger.info("No messages received after multiple polls. Exiting consumer.")
+                    break
                 continue
+
+            empty_poll_count = 0  #Reset on successful poll
+
             if msg.error():
                 if msg.error().code() == KafkaError._PARTITION_EOF:
                     logger.debug("End of partition reached for %s [%d]", msg.topic(), msg.partition())

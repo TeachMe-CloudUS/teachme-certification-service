@@ -1,0 +1,24 @@
+FROM python:3.12-slim
+
+WORKDIR /app
+
+# Install curl and netcat for healthchecks
+RUN apt-get update && apt-get install -y curl netcat-traditional && rm -rf /var/lib/apt/lists/*
+
+# Create certificates directory
+RUN mkdir -p /app/certificates
+
+# Copy requirements and install dependencies
+COPY requirements.txt .
+RUN pip install --no-cache-dir -r requirements.txt
+RUN pip install pytest pytest-cov
+
+# Set Python path
+ENV PYTHONPATH=/app
+
+# Copy application code and tests
+COPY certification_service /app/certification_service
+COPY tests /app/tests
+
+# Default command to run tests
+CMD ["pytest", "-v", "--cov=certification_service", "tests/"]
