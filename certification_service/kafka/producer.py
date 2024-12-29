@@ -1,5 +1,6 @@
 from confluent_kafka import Producer
 import json
+import signal
 from certification_service.logger import logger
 
 # Kafka Producer Configuration
@@ -8,6 +9,14 @@ producer = Producer({
     'acks': 'all',  # Ensure all replicas confirm the message
     'retries': 5     # Retry sending messages up to 5 times
 })
+
+running = True
+
+def signal_handler(signum, frame):
+    """Handle shutdown signals"""
+    global running
+    logger.info("Shutdown signal received, initiating graceful shutdown...")
+    running = False
 
 def delivery_report(err, msg):
     """
@@ -84,7 +93,20 @@ def close_producer():
     Ensures all pending messages are delivered before shutting down the producer.
     """
     try:
-        producer.flush()  # Wait for any outstanding messages to be sent
-        logger.info("Kafka producer flushed and closed.")
+        logger.info("Flushing pending messages...")
+        remaining_messages = producer.flush(timeout=5)
+        if remaining_messages > 0:
+            logger.warning(f"{remaining_messages} messages were not delivered")
+        logger.info("Kafka producer flushed and closed successfully")
     except Exception as e:
         logger.error(f"Error while closing producer: {e}")
+
+def start_producer():
+    """Initialize and start the producer with graceful shutdown."""
+    # Register signal handlers
+    signal.signal(signal.SIGINT, signal_handler)
+    signal.signal(signal.SIGTERM, signal_handler)
+    
+    logger.info("Producer started successfully")
+
+start_producer()

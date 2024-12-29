@@ -10,3 +10,5 @@ python-dotenv==1.0.0
 pymongo
 confluent-kafka
 pytest
+jsonschema>=4.17.3
+prometheus-client>=0.17.1

@@ -1,8 +1,19 @@
-from confluent_kafka import Consumer, KafkaError
+from confluent_kafka import Consumer, KafkaError, Producer
 import json
+import signal
+import threading
 from certification_service.course_cert_utils import certify_student
 from certification_service.logger import logger
 from certification_service.kafka.events import create_topic_name
+
+running = True
+consumer_thread = None
+
+def signal_handler(signum, frame):
+    """Handle shutdown signals"""
+    global running
+    logger.info("Shutdown signal received, initiating graceful shutdown...")
+    running = False
 
 def process_event(msg):
     try:
@@ -32,7 +43,7 @@ def consume_course_completed_events(consumer, topics, timeout=1.0, max_empty_pol
     empty_poll_count = 0
 
     try:
-        while True:
+        while running:  # Use the running flag for graceful shutdown
             msg = consumer.poll(timeout)
             if msg is None:
                 empty_poll_count += 1
@@ -41,10 +52,10 @@ def consume_course_completed_events(consumer, topics, timeout=1.0, max_empty_pol
                     break
                 continue
 
-            empty_poll_count = 0  #Reset on successful poll
+            empty_poll_count = 0  # Reset on successful poll
 
             if msg.error():
-                if msg.error().code() == KafkaError._PARTITION_EOF:
+                if msg.error().code() == KafkaError.PARTITION_EOF:
                     logger.debug("End of partition reached for %s [%d]", msg.topic(), msg.partition())
                     continue
                 else:
@@ -62,23 +73,47 @@ def consume_course_completed_events(consumer, topics, timeout=1.0, max_empty_pol
     except KeyboardInterrupt:
         logger.info("Consumer interrupted by user.")
     finally:
-        consumer.close()
-        logger.info("Consumer closed.")
+        try:
+            # Commit final offsets
+            consumer.commit(asynchronous=False)
+            logger.info("Final offsets committed")
+        except Exception as e:
+            logger.error(f"Error committing final offsets: {e}")
         
+        consumer.close()
+        logger.info("Consumer closed successfully")
 
-# Initial setup
-def create_consumer ():
+def create_consumer():
     conf = {
-    'bootstrap.servers': 'localhost:9092',
-    'group.id': 'notification-group',
-    'auto.offset.reset': 'earliest'
-}
+        'bootstrap.servers': 'localhost:9092',
+        'group.id': 'notification-group',
+        'auto.offset.reset': 'earliest'
+    }
     return Consumer(conf)
 
-def start_consumer():
-    """Initialize and start the consumer."""
+def consumer_thread_func():
+    """Function to run in the consumer thread"""
     consumer = create_consumer()
-    course_completed_topic = create_topic_name("student_service", "course", "completed")
-    consume_course_completed_events(consumer, course_completed_topic)
+    topic = create_topic_name("certification", "course", "completed")
+    
+    try:
+        consume_course_completed_events(consumer, topic)
+    except Exception as e:
+        logger.error(f"Error in consumer: {e}")
+    finally:
+        logger.info("Shutting down consumer...")
 
-
+def start_consumer():
+    """Initialize and start the consumer with graceful shutdown."""
+    global consumer_thread
+    
+    # Only register signal handlers in the main thread
+    if threading.current_thread() is threading.main_thread():
+        signal.signal(signal.SIGINT, signal_handler)
+        signal.signal(signal.SIGTERM, signal_handler)
+    
+    # Start consumer in a separate thread
+    consumer_thread = threading.Thread(target=consumer_thread_func)
+    consumer_thread.start()
+    
+    return consumer_thread
