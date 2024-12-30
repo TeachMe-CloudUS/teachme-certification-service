@@ -12,7 +12,8 @@ mock_student_data = {
     'id': 1,
     'name': 'John Doe',
     'email': 'john.doe@example.com',
-    'course': 'Computer Science',
+    'course_id': 'CS101',
+    'course_name': 'Computer Science',
     'graduation_date': '2023-06-30'
 }
 
@@ -28,5 +29,4 @@ def test_certification_service(mock_post):
     assert response.status_code == 200
     assert 'certificate_path' in response.json()
     assert os.path.exists(response.json()['certificate_path'])
-
 

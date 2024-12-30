@@ -23,9 +23,25 @@ class TestKafkaConsumer(unittest.TestCase):
         # Create a mock message
         mock_msg = MagicMock(spec=Message)
         mock_msg.error.return_value = None
-        mock_msg.value.return_value = b'{"studentId": "123", "courseId": "456"}'
+        mock_msg.value.return_value = b'{"studentId": "123", "userId": "789", "courseId": "456"}'
         
         # Set up consumer to return one valid message then None
+        self.mock_consumer.poll.side_effect = [mock_msg, None]
+        
+        # Call consumer
+        consume_course_completed_events(self.mock_consumer, 'test-topic', timeout=0.1, max_empty_polls=1)
+        
+        # Verify consumer processed the message
+        self.mock_consumer.subscribe.assert_called_once_with(['test-topic'])
+        self.assertEqual(self.mock_consumer.poll.call_count, 2)
+
+    def test_consumer_invalid_message(self):
+        # Create a mock message with invalid data
+        mock_msg = MagicMock(spec=Message)
+        mock_msg.error.return_value = None
+        mock_msg.value.return_value = b'{"studentId": 123, "userId": "789", "courseId": 456}'  # Invalid: studentId and courseId should be strings
+        
+        # Set up consumer to return one invalid message then None
         self.mock_consumer.poll.side_effect = [mock_msg, None]
         
         # Call consumer
@@ -53,7 +69,6 @@ class TestKafkaConsumer(unittest.TestCase):
         # Verify consumer handled the error and continued
         self.mock_consumer.subscribe.assert_called_once_with(['test-topic'])
         self.assertEqual(self.mock_consumer.poll.call_count, 2)
-        # We don't assert error() call count since it may be called multiple times internally
 
 if __name__ == '__main__':
     unittest.main()

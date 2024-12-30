@@ -22,13 +22,14 @@ def process_event(msg):
 
         student_id = event_data.get('studentId')
         user_id = event_data.get('userId')
+        course_id = event_data.get('courseId')
 
-        if not isinstance(student_id, str) or not isinstance(user_id, str):
+        if not isinstance(student_id, str) or not isinstance(user_id, str) or not isinstance(course_id, str):
             logger.warning("Invalid event data: %s", event_data)
             return
 
-        certify_student(student_id, user_id)
-        logger.info("Successfully certified student: %s (User ID: %s)", student_id, user_id)
+        certify_student(student_id, user_id, course_id)
+        logger.info("Successfully certified student: %s (User ID: %s) for course: %s", student_id, user_id, course_id)
 
     except json.JSONDecodeError:
         logger.error("Failed to decode message: %s", msg.value())
