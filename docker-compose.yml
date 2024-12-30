@@ -6,11 +6,15 @@ services:
       - .env
       - ./certification_service/.env
     environment:
-      - MONGO_USERNAME=${MONGO_USERNAME}
-      - MONGO_PASSWORD=${MONGO_PASSWORD}
-      - MONGO_DATABASE=${MONGO_DATABASE}
+      - MONGO_DATABASE=certificate_db
+      - MONGO_PORT=27017
+      - MONGO_HOST=mongodb
+      - MONGO_COLLECTION_NAME=student_certificates
+      - MONGO_USERNAME=certification_service
+      - MONGO_PASSWORD=userpassword123
+      - MONGODB_URI_USER=mongodb://${MONGO_USERNAME}:${MONGO_PASSWORD}@${MONGO_HOST}:${MONGO_PORT}/${MONGO_DATABASE}
     ports:
-      - "${APP_PORT}:5002"
+      - "8080:8080"
     volumes:
       - ./certificates:/app/certificates
     depends_on:
@@ -32,14 +36,14 @@ services:
     env_file:
       - .env
     environment:
-      MONGO_INITDB_ROOT_USERNAME: ${MONGO_INITDB_ROOT_USERNAME}
-      MONGO_INITDB_ROOT_PASSWORD: ${MONGO_INITDB_ROOT_PASSWORD}
-      MONGO_INITDB_DATABASE: ${MONGO_DATABASE}
-      MONGO_COLLECTION_NAME: ${MONGO_COLLECTION_NAME}
-      MONGO_USERNAME: ${MONGO_USERNAME}
-      MONGO_PASSWORD: ${MONGO_PASSWORD}
+      - MONGO_INITDB_ROOT_USERNAME=admin
+      - MONGO_INITDB_ROOT_PASSWORD=rootpassword123
+      - MONGO_INITDB_DATABASE = certificate_db
+      - MONGO_COLLECTION_NAME = student_certificates
+      - MONGO_USERNAME=certification_service
+      - MONGO_PASSWORD=userpassword123
     ports:
-      - "${MONGO_PORT}:27017"
+      - "27017:27017"
     volumes:
       - mongodb_data:/data/db
       - ./mongodb/mongo-init.sh:/docker-entrypoint-initdb.d/mongo-init.sh:ro
@@ -91,10 +95,11 @@ services:
     container_name: azurite
     image: mcr.microsoft.com/azure-storage/azurite:3.33.0
     environment:
-      - AZURE_STORAGE_ACCOUNT_NAME=${AZURE_STORAGE_ACCOUNT_NAME}
-      - AZURE_STORAGE_ACCOUNT_KEY=${AZURE_STORAGE_ACCOUNT_KEY}
-      - BLOB_STORAGE_CONTAINER_NAME=${BLOB_STORAGE_CONTAINER_NAME}
-      - BLOB_STORAGE_CONNECTION_STRING=${BLOB_STORAGE_CONNECTION_STRING}
+      - AZURE_STORAGE_ACCOUNT_NAME=devstoreaccount1
+      - AZURE_STORAGE_ACCOUNT_KEY=Eby8vdM02xNOcqFlqUwJPLlmEtlCDXJ1OUzFT50uSRZ6IFsuFq2UVErCz4I6tq/K1SZFPTOtr/KBHBeksoGMGw==
+      - BLOB_STORAGE_CONTAINER_NAME=certificates
+      - BLOB_STORAGE_CONNECTION_STRING=DefaultEndpointsProtocol=http;AccountName=devstoreaccount1;AccountKey=Eby8vdM02xNOcqFlqUwJPLlmEtlCDXJ1OUzFT50uSRZ6IFsuFq2UVErCz4I6tq/K1SZFPTOtr/KBHBeksoGMGw==;BlobEndpoint=http://azurite:10000/devstoreaccount1;
+
 
     expose:
       - 10000
@@ -122,19 +127,19 @@ services:
       - kafka
       - zookeeper
     environment:
-      - AZURE_STORAGE_ACCOUNT_NAME=${AZURE_STORAGE_ACCOUNT_NAME}
-      - AZURE_STORAGE_ACCOUNT_KEY=${AZURE_STORAGE_ACCOUNT_KEY}
-      - BLOB_STORAGE_CONTAINER_NAME=${BLOB_STORAGE_CONTAINER_NAME}
-      - BLOB_STORAGE_CONNECTION_STRING=${BLOB_STORAGE_CONNECTION_STRING}
-      - MONGO_USERNAME=${MONGO_USERNAME}
-      - MONGO_PASSWORD=${MONGO_PASSWORD}
-      - MONGO_DATABASE=${MONGO_DATABASE}
-      - MONGO_INITDB_ROOT_USERNAME = ${MONGO_INITDB_ROOT_USERNAME}
-      - MONGO_INITDB_ROOT_PASSWORD = ${MONGO_INITDB_ROOT_PASSWORD}
-      - MONGO_INITDB_DATABASE = ${MONGO_DATABASE}
-      - MONGO_COLLECTION_NAME = ${MONGO_COLLECTION_NAME}
-      - MONGODB_URI_USER = ${MONGODB_URI_USER}
-      - MONGODB_URI_USER = ${MONGODB_URI_ADMIN}
+      - AZURE_STORAGE_ACCOUNT_NAME=devstoreaccount1
+      - AZURE_STORAGE_ACCOUNT_KEY=Eby8vdM02xNOcqFlqUwJPLlmEtlCDXJ1OUzFT50uSRZ6IFsuFq2UVErCz4I6tq/K1SZFPTOtr/KBHBeksoGMGw==
+      - BLOB_STORAGE_CONTAINER_NAME=certificates
+      - BLOB_STORAGE_CONNECTION_STRING=DefaultEndpointsProtocol=http;AccountName=devstoreaccount1;AccountKey=Eby8vdM02xNOcqFlqUwJPLlmEtlCDXJ1OUzFT50uSRZ6IFsuFq2UVErCz4I6tq/K1SZFPTOtr/KBHBeksoGMGw==;BlobEndpoint=http://azurite:10000/devstoreaccount1;
+      - MONGO_INITDB_ROOT_USERNAME=admin
+      - MONGO_INITDB_ROOT_PASSWORD=rootpassword123
+      - MONGO_INITDB_DATABASE = certificate_db
+      - MONGO_COLLECTION_NAME = student_certificates
+      - MONGO_USERNAME=certification_service
+      - MONGO_PASSWORD=userpassword123
+      - MONGODB_URI_USER=mongodb://${MONGO_USERNAME}:${MONGO_PASSWORD}@${MONGO_HOST}:${MONGO_PORT}/${MONGO_DATABASE}
+      - MONGODB_URI_ADMIN=mongodb://${MONGO_INITDB_ROOT_USERNAME}:${MONGO_INITDB_ROOT_PASSWORD}@${MONGO_HOST}:${MONGO_PORT}/${MONGO_DATABASE}?authSource=admin
+      - MONGO_DATABASE=certificate_db
     command: >
       sh -c "
         echo 'Waiting for services to be ready...' &&

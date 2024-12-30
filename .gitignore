@@ -128,7 +128,7 @@ cython_debug/
 certificates/
 
 # Docker
-mongodb_data/
+mongodb/data/
 .docker/
 
 # IDE specific files

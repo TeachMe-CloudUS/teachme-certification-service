@@ -21,9 +21,9 @@ class DatabaseConnection:
         retry_count = 0
         last_exception = None
 
-        mongodb_uri = os.getenv('MONGODB_URI_ADMIN')
+        mongodb_uri = os.getenv('MONGODB_URI_USER')
         if not mongodb_uri:
-            raise ValueError("Missing required MONGODB_URI_ADMIN environment variable")
+            raise ValueError("Missing required mongodb URI environment variable")
         else:
             logger.info(f"Using MongoDB URI: {mongodb_uri}")
 
@@ -88,7 +88,7 @@ class DatabaseConnection:
         """Check if the MongoDB connection is healthy."""
         try:
             if self.client is not None:
-                self.client.admin.command('ping')
+                self.client.command('ping')
                 return True, "Connected"
             return False, "Client not initialized"
         except Exception as e:

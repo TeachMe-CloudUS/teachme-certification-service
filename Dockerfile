@@ -11,6 +11,6 @@ ENV PYTHONPATH=/app
 ENV FLASK_APP=certification_service/app.py
 ENV FLASK_ENV=development
 
-EXPOSE 5002
+EXPOSE 8080
 
-CMD ["python", "-m", "flask", "run", "--host=0.0.0.0", "--port=5002"]
+CMD ["python", "-m", "flask", "run", "--host=0.0.0.0", "--port=8080"]

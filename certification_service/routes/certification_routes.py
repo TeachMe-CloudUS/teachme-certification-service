@@ -4,13 +4,13 @@ from certification_service.course_cert_utils import (certify_student, get_all_ce
 
 certification_bp = Blueprint('certification', __name__)
 
-@certification_bp.route('/certify/<int:student_id>/<int:course_id>', methods=['POST'])
+@certification_bp.route('/api/v1/certify/<int:student_id>/<int:course_id>', methods=['POST'])
 def route_certify_student(student_id, course_id):
     """Certify a student by generating a PDF certificate."""
     success = certify_student(student_id, course_id)
     return jsonify({"success": success}), 200 if success else 400
 
-@certification_bp.route('/certify', methods=['POST'])
+@certification_bp.route('/api/v1/certify', methods=['POST'])
 def route_certify():
     """Certify a student by generating a PDF certificate."""
     success = certify_student(None, None)
@@ -21,19 +21,19 @@ def route_certify():
         }), 500
     return jsonify({"success": success}), 200
 
-@certification_bp.route('/certificates/<int:student_id>', methods=['GET'])
+@certification_bp.route('/api/v1/certificates/<int:student_id>', methods=['GET'])
 def route_get_all_certificates(student_id):
     """Get all certificates for a student."""
     certificates = get_all_certs(student_id)
     return jsonify(certificates), 200
 
-@certification_bp.route('/certificates/<int:student_id>/<int:course_id>', methods=['GET'])
+@certification_bp.route('/api/v1/certificates/<int:student_id>/<int:course_id>', methods=['GET'])
 def route_get_course_certificate(student_id, course_id):
     """Get certificate for a specific course and student."""
     certificate = get_cert(student_id, course_id)
     return jsonify(certificate), 200
 
-@certification_bp.route('/certificates/<int:student_id>', methods=['DELETE'])
+@certification_bp.route('/api/v1/certificates/<int:student_id>', methods=['DELETE'])
 def route_delete_student_certificates(student_id):
     """Delete all certificates for a student."""
     try:
