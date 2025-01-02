@@ -87,7 +87,7 @@ def consume_course_completed_events(consumer, timeout=1.0, max_empty_polls=10):
 
 def create_consumer():
     conf = {
-        'bootstrap.servers': 'kafka:29092',
+        'bootstrap.servers': 'kafka:9092',
         'group.id': 'notification-group',
         'auto.offset.reset': 'earliest'
     }

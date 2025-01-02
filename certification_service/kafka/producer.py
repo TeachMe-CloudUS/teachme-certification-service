@@ -5,7 +5,7 @@ from certification_service.logger import logger
 
 # Kafka Producer Configuration
 producer = Producer({
-    'bootstrap.servers': 'kafka:29092',
+    'bootstrap.servers': 'kafka:9092',
     'acks': 'all',  # Ensure all replicas confirm the message
     'retries': 5     # Retry sending messages up to 5 times
 })
