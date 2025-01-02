@@ -25,33 +25,33 @@ class StudentUpdateEvent:
 @dataclass
 class CourseCompletedEvent:
     student_id: str
-    user_id: str
-    name: str
-    surname: str
-    email: str
+    student_userId: str
+    student_name: str
+    student_surname: str
+    student_email: str
     course_id: str
     course_name: str
     course_description: str
     course_duration: str
-    level: str
-    graduation_date: str  # ISO-8601 format string
+    course_level: str
+    completionDate:str  # ISO-8601 format string
     
 
     @staticmethod
     def from_json(data: dict):
         """Convert JSON dictionary to a CourseCompletedEvent object."""
         return CourseCompletedEvent(
-            student_id=data["studentId"],
-            user_id=data["userId"],
-            name=data["name"],
-            surname=data["surname"],
-            email=data["email"],
-            course_id=data["courseId"],
-            course_name=data["courseName"],
-            course_description=data["courseDescription"],
-            course_duration=data["courseDuration"],
-            level=data["level"],
-            graduation_date=data["graduationDate"]           
+            student_id=data["student"]["id"],
+            student_userId=data["student"]["userId"],
+            student_name=data["student"]["name"],
+            student_surname=data["student"]["surname"],
+            student_email=data["student"]["email"],
+            course_id=data["course"]["courseId"],
+            course_name=data["course"]["courseName"],
+            course_description=data["course"]["courseDescription"],
+            course_duration=data["course"]["courseDuration"],
+            course_level=data["course"]["level"],
+            completionDate=data["completionDate"]           
         )
 
     def to_json(self):

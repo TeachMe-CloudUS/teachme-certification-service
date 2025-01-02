@@ -36,8 +36,9 @@ def process_event(msg):
     except Exception as e:
         logger.exception("Error processing event: %s", e)
 
-def consume_course_completed_events(consumer, topics, timeout=1.0, max_empty_polls=10):
+def consume_course_completed_events(consumer, timeout=1.0, max_empty_polls=10):
     """Consume course completed events from Kafka."""
+    topics = ['student-service_course.completed']
     consumer.subscribe([topics])
     logger.info("Consumer started and subscribed to topics: %s", topics)
     
