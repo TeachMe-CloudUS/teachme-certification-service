@@ -13,7 +13,6 @@ from certification_service.database import db_connection
 from certification_service.blob_storage import blob_storage_service
 import certification_service.config as config
 
-
 # Define the signature field name and box
 def generate_certificate(student_data, course_data):
     """Generate and sign a PDF certificate for a student and a specific course."""
