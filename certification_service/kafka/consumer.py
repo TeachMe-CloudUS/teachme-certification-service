@@ -56,7 +56,7 @@ def consume_course_completed_events(consumer, topics, timeout=1.0, max_empty_pol
             empty_poll_count = 0  # Reset on successful poll
 
             if msg.error():
-                if msg.error().code() == KafkaError.PARTITION_EOF:
+                if msg.error().code() == KafkaError._PARTITION_EOF:
                     logger.debug("End of partition reached for %s [%d]", msg.topic(), msg.partition())
                     continue
                 else:
