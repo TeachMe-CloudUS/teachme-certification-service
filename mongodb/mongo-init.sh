@@ -12,20 +12,20 @@ echo "MongoDB is ready. Starting initialization..."
 mongosh admin --quiet <<EOF
 
   db.createUser({
-    user: '$MONGO_INITDB_ROOT_USERNAME',
-    pwd: '$MONGO_INITDB_ROOT_PASSWORD',
+    user: "${MONGO_INITDB_ROOT_USERNAME}",
+    pwd: "${MONGO_INITDB_ROOT_PASSWORD}",
     roles: [{ role: 'root', db: 'admin' }]
   });
 
   // Authenticate as root to create application user
-  db.auth('$MONGO_INITDB_ROOT_USERNAME', '$MONGO_INITDB_ROOT_PASSWORD');
+  db.auth("${MONGO_INITDB_ROOT_USERNAME}", "${MONGO_INITDB_ROOT_PASSWORD}");
 
 
   use $MONGO_DATABASE
   db.createUser({
-    user: '$MONGO_USERNAME',
-    pwd: '$MONGO_PASSWORD',
-    roles: [{ role: 'readWrite', db: '$MONGO_DATABASE' }]
+    user: "${MONGO_USERNAME}",
+    pwd: "${MONGO_PASSWORD}",
+    roles: [{ role: 'readWrite', db: "${MONGO_DATABASE}" }]
   });
 
 

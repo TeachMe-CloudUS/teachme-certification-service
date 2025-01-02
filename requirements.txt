@@ -11,3 +11,6 @@ pymongo
 confluent-kafka
 azure-storage-blob
 azure-identity
+pytest
+jsonschema>=4.17.3
+prometheus-client>=0.17.1
