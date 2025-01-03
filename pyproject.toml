@@ -55,11 +55,6 @@ packages = [
     "certification_service.routes"
 ]
 
-[tool.setuptools.packages.find]
-where = ["."]
-include = ["certification_service*"]
-recursive = true
-
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 python_files = ["test_*.py"]
