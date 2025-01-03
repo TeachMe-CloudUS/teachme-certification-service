@@ -11,6 +11,8 @@ from pyhanko.sign.signers.pdf_signer import PdfSignatureMetadata
 from certification_service.logger import logger
 from certification_service.database import db_connection
 from certification_service.blob_storage import blob_storage_service
+from certification_service.kafka.producer import send_certification_notification
+from certification_service.models.student_course_data import Student_Course_Data
 import certification_service.config as config
 
 def generate_certificate(student_course_data):
@@ -71,7 +73,7 @@ def generate_certificate(student_course_data):
     logger.info("PDF signed with QR code successfully.")
     return signed_pdf_stream
 
-def certify_student(student_course_data=None):
+def certify_student(student_course_data: Student_Course_Data = None):
     """Generate and sign a PDF certificate for a student and a specific course."""
     # Generate the certificate
     cert_stream = generate_certificate(student_course_data)
@@ -83,15 +85,21 @@ def certify_student(student_course_data=None):
     blob_url = blob_storage_service.upload_file_from_stream(cert_stream, blob_name)
     logger.info(f"Signed PDF uploaded to: {blob_url}")
 
-    #TO DO: Create a class and use it as parameter instead of adding 
+    # Store the certificate in the database
     stored_cert = db_connection.store_certificate(student_course_data, blob_url)
     
     if not stored_cert:
         logger.error(f"Failed to store certificate for student {student_course_data.student_id} " 
         f"in course {student_course_data.course_id}")
         blob_storage_service.delete_blob(blob_name)
+        
+        # Send failure notification
+        send_certification_notification(student_course_data, blob_url, False, "Failed to store certificate")
         return None
-
+    
+    # Send success notification
+    send_certification_notification(student_course_data, blob_url, True)
+    
     return blob_url
 
 def update_certs(student_id):

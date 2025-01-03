@@ -1,6 +1,7 @@
 import unittest
 from unittest.mock import MagicMock, patch
 from certification_service.kafka.producer import send_certification_notification, create_payload
+from certification_service.models.student_course_data import Student_Course_Data
 
 class TestKafkaProducer(unittest.TestCase):
     def setUp(self):
@@ -27,16 +28,32 @@ class TestKafkaProducer(unittest.TestCase):
         self.assertEqual(payload['error'], error_msg)
 
     def test_send_notification_success(self):
+        # Create an instance of Student_Course_Data
+        student_course_data = Student_Course_Data(
+            student_id='123',
+            course_id='course456',
+            student_name='John',
+            student_surname='Doe',
+            student_email='john.doe@example.com'
+        )
         # Test sending a success notification
-        send_certification_notification('123', 'course456', True)
+        send_certification_notification(student_course_data, 'blob_url', True)
         
         # Verify producer was called
         self.mock_producer.produce.assert_called_once()
         self.mock_producer.poll.assert_called_once_with(0)
 
     def test_send_notification_failure(self):
+        # Create an instance of Student_Course_Data
+        student_course_data = Student_Course_Data(
+            student_id='123',
+            course_id='course456',
+            student_name='John',
+            student_surname='Doe',
+            student_email='john.doe@example.com'
+        )
         # Test sending a failure notification
-        send_certification_notification('123', 'course456', False, 'Test error')
+        send_certification_notification(student_course_data, 'blob_url', False, 'Test error')
         
         # Verify producer was called
         self.mock_producer.produce.assert_called_once()

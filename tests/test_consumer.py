@@ -2,6 +2,9 @@ import unittest
 from unittest.mock import MagicMock, patch
 from confluent_kafka import KafkaError, Message
 from certification_service.kafka.consumer import consume_course_completed_events, create_consumer
+from certification_service.models.student_course_data import Student_Course_Data
+from dataclasses import asdict
+import json
 
 class TestKafkaConsumer(unittest.TestCase):
     def setUp(self):
@@ -20,10 +23,22 @@ class TestKafkaConsumer(unittest.TestCase):
         self.mock_consumer.poll.assert_called()
 
     def test_consumer_valid_message(self):
+        # Create an instance of Student_Course_Data
+        student_course_data = Student_Course_Data(
+            student_id='123',
+            student_userId='789',
+            course_id='456',
+            course_name='Test Course',
+            course_description='A course for testing',
+            course_duration='4 weeks',
+            course_level='Beginner',
+            completionDate='2025-01-03T10:00:00+01:00'
+        )
+        
         # Create a mock message
         mock_msg = MagicMock(spec=Message)
         mock_msg.error.return_value = None
-        mock_msg.value.return_value = b'{"studentId": "123", "userId": "789", "courseId": "456"}'
+        mock_msg.value.return_value = json.dumps(asdict(student_course_data)).encode('utf-8')
         
         # Set up consumer to return one valid message then None
         self.mock_consumer.poll.side_effect = [mock_msg, None]

@@ -1,6 +1,7 @@
 import unittest
 from certification_service.app import create_app
 from unittest.mock import patch, MagicMock
+from certification_service.models.student_course_data import Student_Course_Data
 
 class TestAppInitialization(unittest.TestCase):
     @patch('threading.Thread')
@@ -23,6 +24,10 @@ class TestAppInitialization(unittest.TestCase):
 
         # Check if producer function is available
         mock_producer.assert_not_called()  # Ensure that producer's send_certification_notification is not called during app creation
+
+        # Test using Student_Course_Data
+        student_course_data = Student_Course_Data()
+        self.assertIsInstance(student_course_data, Student_Course_Data)
 
 if __name__ == '__main__':
     unittest.main()
