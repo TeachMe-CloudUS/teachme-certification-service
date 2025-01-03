@@ -45,10 +45,12 @@ dev = [
 ]
 
 [project.scripts]
-certification-service = "certification_service.main:main"
+certification-service = "certification_service.app:main"
 
-[tool.setuptools]
-packages = ["certification_service"]
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["certification_service*"]
+recursive = true
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
