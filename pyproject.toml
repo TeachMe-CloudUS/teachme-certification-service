@@ -47,6 +47,14 @@ dev = [
 [project.scripts]
 certification-service = "certification_service.app:main"
 
+[tool.setuptools]
+packages = [
+    "certification_service", 
+    "certification_service.kafka", 
+    "certification_service.models", 
+    "certification_service.routes"
+]
+
 [tool.setuptools.packages.find]
 where = ["."]
 include = ["certification_service*"]
