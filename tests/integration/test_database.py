@@ -4,7 +4,7 @@ from pymongo import MongoClient, errors
 from dotenv import load_dotenv
 from datetime import datetime
 from certification_service.database import DatabaseConnection
-from certification_service.models.student_Course_Data import Student_Course_Data
+from certification_service.models.student_course_data import Student_Course_Data
 
 load_dotenv()
 
