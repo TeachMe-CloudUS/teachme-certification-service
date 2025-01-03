@@ -108,7 +108,7 @@ class DatabaseConnection:
             'course_description': student_course_data.course_description,
             'course_duration': student_course_data.course_duration,
             'course_level': student_course_data.course_level,
-            'graduation_date': datetime.strptime(student_course_data.completionDate, "%Y-%m-%dT%H:%M:%SZ"),
+            'completionDate': datetime.strptime(student_course_data.completionDate, "%Y-%m-%dT%H:%M:%SZ"),
             'blob_link': blob_link
         }
         try:
