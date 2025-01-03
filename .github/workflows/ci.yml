@@ -1,54 +1,63 @@
-name: CI
+[build-system]
+requires = ["setuptools>=61.0", "wheel"]
+build-backend = "setuptools.build_meta"
 
-on:
-  push:
-  pull_request:
-  workflow_dispatch:
+[project]
+name = "teachme-certification-service"
+version = "0.1.0"
+description = "Certification Service for TeachMe"
+readme = "README.md"
+requires-python = ">=3.8"
+authors = [
+    {name = "Julian Rotter, Lydia Payer", email = "julian.rotter@student.uibk.ac.at"}
+]
+keywords = ["certification", "service", "teachme"]
+classifiers = [
+    "Programming Language :: Python :: 3.8",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Development Status :: 3 - Alpha",
+    "Framework :: Flask",
+]
 
-jobs:
-  build:
-    runs-on: ubuntu-latest
-    services:
-      mongodb:
-        image: mongo:latest
-        ports:
-          - 27017:27017
-        env:
-          MONGO_INITDB_ROOT_USERNAME: admin
-          MONGO_INITDB_ROOT_PASSWORD: rootpassword123
-          MONGO_INITDB_DATABASE: certificate_db
+dependencies = [
+    "Flask==3.0.3",
+    "pyHanko==0.25.3",
+    "pyhanko-certvalidator==0.26.5",
+    "cryptography==43.0.3",
+    "oscrypto==1.3.0",
+    "qrcode==8.0",
+    "reportlab==4.2.5",
+    "python-dotenv==1.0.0",
+    "pymongo",
+    "confluent-kafka",
+    "azure-storage-blob",
+    "azure-identity",
+    "jsonschema>=4.17.3",
+    "prometheus-client>=0.17.1"
+]
 
-    steps:
-    - name: Checkout code
-      uses: actions/checkout@v3
+[project.optional-dependencies]
+dev = [
+    "pytest",
+    "pylint",
+]
 
-    - name: Set up Python
-      uses: actions/setup-python@v3
-      with:
-        python-version: '3.x'
+[project.scripts]
+certification-service = "certification_service.main:main"
 
-    - name: Install dependencies
-      run: |
-        python -m pip install --upgrade pip
-        pip install .
-        pip install pytest
-        pip install pylint
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+python_files = ["test_*.py"]
+python_classes = ["Test*"]
+python_functions = ["test_*"]
 
-    - name: Lint with pylint
-      run: |
-        pylint certification_service > pylint_report.txt || true
-        pylint_exit_code=$?
-        if [ $pylint_exit_code -eq 32 ]; then
-          echo "Pylint found fatal errors, failing..."
-          exit 1
-        fi
-        echo "Pylint completed with exit code: $pylint_exit_code"
+[tool.pylint.master]
+ignore-patterns = "test_*.py"
 
-    - name: Run tests
-      env:
-        MONGO_DATABASE: certificate_db
-        MONGO_COLLECTION_NAME: student_certificates
-        MONGODB_URI_USER: mongodb://certification_service:userpassword123@localhost:27017/certificate_db
-        MONGODB_URI_ADMIN: mongodb://admin:rootpassword123@localhost:27017/admin
-      run: |
-          pytest tests/integration/test_database.py
+[tool.pylint.messages_control]
+disable = [
+    "C0111",  # missing-docstring
+    "R0903",  # too-few-public-methods
+]
