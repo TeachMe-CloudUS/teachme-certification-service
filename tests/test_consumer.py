@@ -1,7 +1,7 @@
 import unittest
-from unittest.mock import MagicMock, patch
+from unittest.mock import patch, MagicMock
 from confluent_kafka import KafkaError, Message
-from certification_service.kafka.consumer import consume_course_completed_events, create_consumer
+from certification_service.kafka.consumer import consume_course_completed_events
 from certification_service.models.student_course_data import Student_Course_Data
 from dataclasses import asdict
 import json
@@ -10,7 +10,7 @@ class TestKafkaConsumer(unittest.TestCase):
     def setUp(self):
         # Create a mock consumer
         self.mock_consumer = MagicMock()
-        
+
     def test_consumer_empty_message(self):
         # Test handling of empty messages
         self.mock_consumer.poll.return_value = None
@@ -49,6 +49,7 @@ class TestKafkaConsumer(unittest.TestCase):
         # Verify consumer processed the message
         self.mock_consumer.subscribe.assert_called_once_with(['test-topic'])
         self.assertEqual(self.mock_consumer.poll.call_count, 2)
+        self.mock_consumer.commit.assert_called_once_with(mock_msg)
 
     def test_consumer_invalid_message(self):
         # Create a mock message with invalid data
@@ -62,9 +63,10 @@ class TestKafkaConsumer(unittest.TestCase):
         # Call consumer
         consume_course_completed_events(self.mock_consumer, 'test-topic', timeout=0.1, max_empty_polls=1)
         
-        # Verify consumer processed the message
+        # Verify consumer did not process the message
         self.mock_consumer.subscribe.assert_called_once_with(['test-topic'])
         self.assertEqual(self.mock_consumer.poll.call_count, 2)
+        self.mock_consumer.commit.assert_not_called()
 
     def test_consumer_error_message(self):
         # Create a mock message with an error
@@ -84,6 +86,7 @@ class TestKafkaConsumer(unittest.TestCase):
         # Verify consumer handled the error and continued
         self.mock_consumer.subscribe.assert_called_once_with(['test-topic'])
         self.assertEqual(self.mock_consumer.poll.call_count, 2)
+        self.mock_consumer.commit.assert_not_called()
 
 if __name__ == '__main__':
     unittest.main()

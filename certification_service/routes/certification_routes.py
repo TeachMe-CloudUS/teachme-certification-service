@@ -1,19 +1,36 @@
 # routes/certification_routes.py
-from flask import Blueprint, jsonify
+from flask import Blueprint, jsonify, request
 from certification_service.course_cert_utils import (certify_student, get_all_certs, get_cert, delete_all_certs)
+from certification_service.models.student_course_data import Student_Course_Data
 
 certification_bp = Blueprint('certification', __name__)
 
 @certification_bp.route('/api/v1/certify/<int:student_id>/<int:course_id>', methods=['POST'])
 def route_certify_student(student_id, course_id):
     """Certify a student by generating a PDF certificate."""
-    success = certify_student(student_id, course_id)
+    student_course_data = Student_Course_Data(
+        student_id=str(student_id),
+        course_id=str(course_id),
+    )
+    success = certify_student(student_course_data)
     return jsonify({"success": success}), 200 if success else 400
 
 @certification_bp.route('/api/v1/certify', methods=['POST'])
 def route_certify():
     """Certify a student by generating a PDF certificate."""
-    success = certify_student(None, None)
+    # Assuming the request body contains the necessary data
+    data = request.get_json()
+
+    # Input validation for required fields
+    if not data or 'student_id' not in data or 'course_id' not in data:
+        return jsonify({"Error": "Missing student_id or course_id in request"}), 400
+
+    student_course_data = Student_Course_Data(
+        student_id=data.get('student_id'),
+        course_id=data.get('course_id'),
+        # Populate other fields as necessary
+    )
+    success = certify_student(student_course_data)
     if not success:
         return jsonify({
             "Error": "Certification failed, possible reasons: "
@@ -230,5 +247,3 @@ def route_delete_student_certificates(student_id):
 #     except Exception as e:
 #         app.logger.error(f"Error deleting certificates for student_id {student_id}: {str(e)}")
 #         return jsonify({"error": "Failed to delete certificates"}), 500
-    
-

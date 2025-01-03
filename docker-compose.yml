@@ -1,10 +1,9 @@
+version: '3.8'
+
 services:
   app:
     build: .
     container_name: certification_service
-    env_file:
-      - .env
-      - ./certification_service/.env
     environment:
       - MONGO_DATABASE=certificate_db
       - MONGO_PORT=27017
@@ -12,7 +11,17 @@ services:
       - MONGO_COLLECTION_NAME=student_certificates
       - MONGO_USERNAME=certification_service
       - MONGO_PASSWORD=userpassword123
-      - MONGODB_URI_USER=mongodb://${MONGO_USERNAME}:${MONGO_PASSWORD}@${MONGO_HOST}:${MONGO_PORT}/${MONGO_DATABASE}
+      - MONGODB_URI_USER=mongodb://certification_service:userpassword123@mongodb:27017/certificate_db
+      - AZURE_STORAGE_ACCOUNT_NAME=devstoreaccount1
+      - AZURE_STORAGE_ACCOUNT_KEY=Eby8vdM02xNOcqFlqUwJPLlmEtlCDXJ1OUzFT50uSRZ6IFsuFq2UVErCz4I6tq/K1SZFPTOtr/KBHBeksoGMGw==
+      - BLOB_STORAGE_CONTAINER_NAME=certificates
+      - BLOB_STORAGE_CONNECTION_STRING=DefaultEndpointsProtocol=http;AccountName=devstoreaccount1;AccountKey=Eby8vdM02xNOcqFlqUwJPLlmEtlCDXJ1OUzFT50uSRZ6IFsuFq2UVErCz4I6tq/K1SZFPTOtr/KBHBeksoGMGw==;BlobEndpoint=http://azurite:10000/devstoreaccount1;
+      - CERTIFICATES_DIR=/app/certificates
+      - PFX_PASSPHRASE=mysecurepassphrase
+      - SIGNATURE_FIELD_NAME=Signature1
+      - SIGNATURE_BOX=150,30,450,90
+      - QR_CODE_URL=https://www.youtube.com/watch?v=dQw4w9WgXcQ
+      - MONGODB_URI_ADMIN=mongodb://${MONGO_INITDB_ROOT_USERNAME}:${MONGO_INITDB_ROOT_PASSWORD}@${MONGO_HOST}:${MONGO_PORT}/${MONGO_DATABASE}?authSource=admin
     ports:
       - "8080:8080"
     volumes:
@@ -35,13 +44,11 @@ services:
   mongodb:
     image: mongo:latest
     container_name: certification_mongodb
-    env_file:
-      - .env.test
     environment:
       - MONGO_INITDB_ROOT_USERNAME=admin
       - MONGO_INITDB_ROOT_PASSWORD=rootpassword123
-      - MONGO_INITDB_DATABASE = certificate_db
-      - MONGO_COLLECTION_NAME = student_certificates
+      - MONGO_INITDB_DATABASE=certificate_db
+      - MONGO_COLLECTION_NAME=student_certificates
       - MONGO_USERNAME=certification_service
       - MONGO_PASSWORD=userpassword123
     ports:
@@ -61,14 +68,14 @@ services:
       - certification-service-network
 
   zookeeper:
-      image: confluentinc/cp-zookeeper:latest
-      environment:
-        ZOOKEEPER_CLIENT_PORT: 2181
-        ZOOKEEPER_TICK_TIME: 2000
-      ports:
-        - "2181:2181" 
-      networks:
-        - certification-service-network
+    image: confluentinc/cp-zookeeper:latest
+    environment:
+      ZOOKEEPER_CLIENT_PORT: 2181
+      ZOOKEEPER_TICK_TIME: 2000
+    ports:
+      - "2181:2181" 
+    networks:
+      - certification-service-network
 
   kafka:
     image: confluentinc/cp-kafka:latest
@@ -111,50 +118,43 @@ services:
       - "10001:10001"
       - "10002:10002"
     volumes:
-      - blob-storage-volume:/data mcr.microsoft.com/azure-storage/azurite
+      - blob-storage-volume:/data
     networks:
       - certification-service-network
 
-
   test_runner:
     build: 
-      context: .
+      context: . 
       dockerfile: Dockerfile.test
-    env_file:
-      - .env
     depends_on:
-      mongodb: 
+      mongodb:
         condition: service_healthy
       kafka:
         condition: service_healthy
     environment:
+      - MONGO_DATABASE=certificate_db
+      - MONGO_PORT=27017
+      - MONGO_HOST=mongodb
+      - MONGO_USERNAME=certification_service
+      - MONGO_PASSWORD=userpassword123
       - AZURE_STORAGE_ACCOUNT_NAME=devstoreaccount1
       - AZURE_STORAGE_ACCOUNT_KEY=Eby8vdM02xNOcqFlqUwJPLlmEtlCDXJ1OUzFT50uSRZ6IFsuFq2UVErCz4I6tq/K1SZFPTOtr/KBHBeksoGMGw==
       - BLOB_STORAGE_CONTAINER_NAME=certificates
       - BLOB_STORAGE_CONNECTION_STRING=DefaultEndpointsProtocol=http;AccountName=devstoreaccount1;AccountKey=Eby8vdM02xNOcqFlqUwJPLlmEtlCDXJ1OUzFT50uSRZ6IFsuFq2UVErCz4I6tq/K1SZFPTOtr/KBHBeksoGMGw==;BlobEndpoint=http://azurite:10000/devstoreaccount1;
-      - MONGO_INITDB_ROOT_USERNAME=admin
-      - MONGO_INITDB_ROOT_PASSWORD=rootpassword123
-      - MONGO_INITDB_DATABASE = certificate_db
-      - MONGO_COLLECTION_NAME = student_certificates
-      - MONGO_USERNAME=certification_service
-      - MONGO_PASSWORD=userpassword123
-      - MONGODB_URI_USER=mongodb://${MONGO_USERNAME}:${MONGO_PASSWORD}@${MONGO_HOST}:${MONGO_PORT}/${MONGO_DATABASE}
+      - CERTIFICATES_DIR=/app/certificates
+      - PFX_PASSPHRASE=mysecurepassphrase
+      - SIGNATURE_FIELD_NAME=Signature1
+      - SIGNATURE_BOX=150,30,450,90
+      - QR_CODE_URL=https://www.youtube.com/watch?v=dQw4w9WgXcQ
       - MONGODB_URI_ADMIN=mongodb://${MONGO_INITDB_ROOT_USERNAME}:${MONGO_INITDB_ROOT_PASSWORD}@${MONGO_HOST}:${MONGO_PORT}/${MONGO_DATABASE}?authSource=admin
-      - MONGO_DATABASE=certificate_db
-      - KAFKA_BROKER=kafka:29092
-      - FLASK_ENV=testing
-    command: >
-      sh -c "
-        echo 'Waiting for services to be ready...' &&
-        sleep 15 &&
-        pytest tests/integration
-      "
+      - MONGODB_URI_USER=mongodb://certification_service:userpassword123@mongodb:27017/certificate_db
     volumes:
       - ./certification_service:/app/certification_service
       - ./tests:/app/tests
       - ./certificates:/app/certificates
     networks:
       - certification-service-network
+    command: pytest /app/tests
 
 volumes:
   kafka_data:
