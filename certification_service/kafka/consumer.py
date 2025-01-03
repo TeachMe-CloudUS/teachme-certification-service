@@ -4,7 +4,7 @@ import signal
 import threading
 from certification_service.course_cert_utils import certify_student
 from certification_service.logger import logger
-from certification_service.kafka.events import create_topic_name
+from certification_service.models.student_course_data  import Student_Course_Data
 
 running = True
 consumer_thread = None
@@ -19,27 +19,24 @@ def process_event(msg):
     try:
         event_data = json.loads(msg.value().decode('utf-8'))
         logger.info("Event received: %s", event_data)
-
-        student_id = event_data.get('studentId')
-        user_id = event_data.get('userId')
-        course_id = event_data.get('courseId')
-
-        if not isinstance(student_id, str) or not isinstance(user_id, str) or not isinstance(course_id, str):
-            logger.warning("Invalid event data: %s", event_data)
-            return
-
-        certify_student(student_id, user_id, course_id)
-        logger.info("Successfully certified student: %s (User ID: %s) for course: %s", student_id, user_id, course_id)
+        student_course_data = Student_Course_Data.from_json(event_data)
+        # Proceed with certification or further processing
+        certify_student(student_course_data)
 
     except json.JSONDecodeError:
         logger.error("Failed to decode message: %s", msg.value())
+    except ValueError  as value_error:
+        logger.error(f"Failed to decode Kafka event: {value_error}")
+    except KeyError as e:
+        logger.error(f"Missing key in Kafka event data: {e}")
+        logger.error(f"Event data: {event_data}")
     except Exception as e:
-        logger.exception("Error processing event: %s", e)
+        logger.exception("Error processing Kafka event: %s", e)
 
-def consume_course_completed_events(consumer, timeout=1.0, max_empty_polls=10):
+def consume_course_completed_events(consumer, timeout=1.0):
     """Consume course completed events from Kafka."""
-    topics = ['student-service_course.completed']
-    consumer.subscribe([topics])
+    topics = ['student-service.course.completed']
+    consumer.subscribe(topics)
     logger.info("Consumer started and subscribed to topics: %s", topics)
     
     empty_poll_count = 0
@@ -47,15 +44,6 @@ def consume_course_completed_events(consumer, timeout=1.0, max_empty_polls=10):
     try:
         while running:  # Use the running flag for graceful shutdown
             msg = consumer.poll(timeout)
-            if msg is None:
-                empty_poll_count += 1
-                if empty_poll_count >= max_empty_polls:
-                    logger.info("No messages received after multiple polls. Exiting consumer.")
-                    break
-                continue
-
-            empty_poll_count = 0  # Reset on successful poll
-
             if msg.error():
                 if msg.error().code() == KafkaError._PARTITION_EOF:
                     logger.debug("End of partition reached for %s [%d]", msg.topic(), msg.partition())
@@ -96,10 +84,8 @@ def create_consumer():
 def consumer_thread_func():
     """Function to run in the consumer thread"""
     consumer = create_consumer()
-    topic = create_topic_name("certification", "course", "completed")
-    
     try:
-        consume_course_completed_events(consumer, topic)
+        consume_course_completed_events(consumer)
     except Exception as e:
         logger.error(f"Error in consumer: {e}")
     finally:

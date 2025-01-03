@@ -6,7 +6,6 @@ from pymongo.errors import ConnectionFailure, OperationFailure
 from certification_service.logger import logger
 from datetime import datetime
 
-
 class DatabaseConnection:
     def __init__(self, max_retries: int = 5, retry_delay: int = 5):
         self.max_retries = max_retries
@@ -94,34 +93,39 @@ class DatabaseConnection:
         except Exception as e:
             return False, str(e)
 
-    def store_certificate(self, student, course, blob_link):
+    def store_certificate(self, student_course_data, blob_link):
         """Store a certificate in MongoDB and return the stored document."""
         if not self._initialized:
             raise ValueError("Database connection not initialized")
         
         certificate_data = {
-            'student_id': str(student['id']),
-            'name': student['name'],
-            'surname': student['surname'],
-            'email': student['email'],
-            'course_id': str(course['id']),
-            'graduation_date': datetime.strptime(student['graduation_date'], "%Y-%m-%d"),
+            'student_id': str(student_course_data.student_id),
+            'name': student_course_data.student_name,
+            'surname': student_course_data.student_surname,
+            'email': student_course_data.student_email,
+            'course_id': str(student_course_data.course_id),
+            'course_name': student_course_data.course_name,
+            'course_description': student_course_data.course_description,
+            'course_duration': student_course_data.course_duration,
+            'course_level': student_course_data.course_level,
+            'graduation_date': datetime.strptime(student_course_data.completionDate, "%Y-%m-%dT%H:%M:%SZ"),
             'blob_link': blob_link
         }
         try:
-
             result = self.certificates_collection.insert_one(certificate_data)
             
             if not result.acknowledged:
-                logger.error(f"Failed to store certificate for student {student['id']} in course {course['id']}")
+                logger.error(f"Failed to store certificate for student {student_course_data.student_id} "
+                f"in course {student_course_data.course_id}")
                 return None
             
             return self.certificates_collection.find_one({'_id': result.inserted_id})
         
         except errors.DuplicateKeyError:
-            logger.warning(f"Certificate already exists for student {student['id']} in course {course['id']}")
+            logger.warning(f"Certificate already exists for student {student_course_data.student_id} " 
+            f"in course {student_course_data.course_id}")
             return None
-    
+
         except Exception as e:
             logger.error(f"Unexpected error storing certificate: {e}")
             raise
@@ -131,8 +135,8 @@ class DatabaseConnection:
         try:
             # Assuming 'certificates' is the collection name in MongoDB
             certificate = self.certificates_collection.find_one({
-                'id': student_id, 
-                'courseId': course_id
+                'student_id': student_id, 
+                'course_id': course_id
             })
             
             if certificate:
@@ -194,37 +198,6 @@ class DatabaseConnection:
             import traceback
             logger.error(traceback.format_exc())
             raise
-
-
-    mock_student = {
-        'id': '69',
-        'userId': '069',
-        'name': 'Jane',
-        'surname': 'Doe',
-        'email': 'jane.doe@example.com',
-        'courseId': 'Data Science',
-        'graduation_date': '2023-06-30'
-    }
-    mock_course = {
-        'id': 'DS101',
-        'name': 'Introduction to Data Science',
-        'category': 'Technology',
-        'description': 'A comprehensive introduction to data science principles and techniques',
-        'duration': '12 weeks',
-        'completionDate': '2024-06-30',
-        'level': 'Beginner'
-    }
-
-# Function to get mock course data 
-def get_mock_course_data(course_id):
-    """Retrieve mock data for a course given its course ID."""
-    return {
-        'id': course_id,
-        'name': 'Data Science',
-        'description': 'xyz',
-        'duration': '12 weeks',
-        'start_date': '2023-03-15'
-    }
 
 # Create a global instance
 db_connection = DatabaseConnection()

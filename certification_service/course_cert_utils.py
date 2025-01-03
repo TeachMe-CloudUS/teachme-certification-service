@@ -13,8 +13,7 @@ from certification_service.database import db_connection
 from certification_service.blob_storage import blob_storage_service
 import certification_service.config as config
 
-# Define the signature field name and box
-def generate_certificate(student_data, course_data):
+def generate_certificate(student_course_data):
     """Generate and sign a PDF certificate for a student and a specific course."""
     logger.info("Starting creating certificate...")
     # Create a PDF in memory
@@ -25,18 +24,20 @@ def generate_certificate(student_data, course_data):
     # Add certificate content
     c.setFont("Helvetica-Bold", 24)
     c.drawCentredString(width / 2, height - 100, "Certificate of Completion")
-    c.setFont("Helvetica", 18)
-    c.drawCentredString(width / 2, height - 200, f"This certifies that {student_data['name']} {student_data['surname']}")
     c.setFont("Helvetica", 16)
     c.drawCentredString(
         width / 2,
         height - 250,
-        f"has successfully completed the course '{course_data['name']}' "
-        f"in {course_data['duration']} "
-        f"on {student_data['graduation_date']}."
+        f"{student_course_data.student_name} "
+        f"{student_course_data.student_surname} "
+        f"successfully completed the {student_course_data.course_level} "
+        f"course {student_course_data.course_name} "
+        f"with full academic requirements on {student_course_data.completionDate}."
     )
     c.save()
-    
+
+    # Rest of the function remains the same...
+
     # Prepare the PDF for signing
     pdf_buffer.seek(0)
     pdf_writer = IncrementalPdfFileWriter(pdf_buffer)
@@ -70,27 +71,24 @@ def generate_certificate(student_data, course_data):
     logger.info("PDF signed with QR code successfully.")
     return signed_pdf_stream
 
-def certify_student(student=None, course=None):
+def certify_student(student_course_data=None):
     """Generate and sign a PDF certificate for a student and a specific course."""
-    # Use mock data if no specific student or course is provided
-    student_data = student or db_connection.mock_student
-    course_data = course or db_connection.mock_course
-
     # Generate the certificate
-    cert_stream = generate_certificate(student_data, course_data)
+    cert_stream = generate_certificate(student_course_data)
 
     # Generate unique blob name for the certificate
-    blob_name = f"stud_{student_data['id']}_course_{course_data['id']}.pdf"
+    blob_name = f"stud_{student_course_data.student_id}_course_{student_course_data.course_id}.pdf"
 
     # Upload the signed PDF to Azure Blob Storage
     blob_url = blob_storage_service.upload_file_from_stream(cert_stream, blob_name)
     logger.info(f"Signed PDF uploaded to: {blob_url}")
 
     #TO DO: Create a class and use it as parameter instead of adding 
-    stored_cert = db_connection.store_certificate(student_data, course_data, blob_url)
+    stored_cert = db_connection.store_certificate(student_course_data, blob_url)
     
     if not stored_cert:
-        logger.error(f"Failed to store certificate for student {student_data['id']} in course {course_data['id']}")
+        logger.error(f"Failed to store certificate for student {student_course_data.student_id} " 
+        f"in course {student_course_data.course_id}")
         blob_storage_service.delete_blob(blob_name)
         return None
 

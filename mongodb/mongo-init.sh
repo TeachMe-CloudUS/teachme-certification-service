@@ -32,42 +32,73 @@ mongosh admin --quiet <<EOF
   db = db.getSiblingDB('$MONGO_DATABASE');
   
 
-  // Create the collection with schema validation
-  db.createCollection('$MONGO_COLLECTION_NAME', {
-    validator: {
-      \$jsonSchema: {
-        bsonType: "object",
-        required: ["student_id", "name", "surname", "email", "course_id", "graduation_date"],
-        properties: {
-          student_id: {
-            bsonType: "string",
-            description: "must be a string and is required"
-          },
-          name: {
-            bsonType: "string",
-            description: "must be a string and is required"
-          },
-          surname: {
-            bsonType: "string",
-            description: "must be a string and is required"
-          },
-          email: {
-            bsonType: "string",
-            pattern: "^[^@\\s]+@[^@\\s]+\\.[^@\\s]+\$",
-            description: "must be a valid email address"
-          },
-          course_id: {
-            bsonType: "string",
-            description: "must be a string and is required"
-          },
-          graduation_date: {
-            bsonType: "date",
-            description: "must be of type date YYYY-MM-DD"
-          }
+ // Create the collection with schema validation
+ db.createCollection('$MONGO_COLLECTION_NAME', {
+  validator: {
+    $jsonSchema: {
+      bsonType: "object",
+      required: [
+        "student_id", 
+        "name", 
+        "surname", 
+        "email", 
+        "course_id", 
+        "graduation_date",
+        "course_name",
+        "course_description",
+        "course_duration",
+        "course_level"
+      ],
+      properties: {
+        student_id: {
+          bsonType: "string",
+          description: "must be a string and is required"
+        },
+        name: {
+          bsonType: "string",
+          description: "must be a string and is required"
+        },
+        surname: {
+          bsonType: "string",
+          description: "must be a string and is required"
+        },
+        email: {
+          bsonType: "string",
+          pattern: "^[^@\\s]+@[^@\\s]+\\.[^@\\s]+\$",
+          description: "must be a valid email address"
+        },
+        course_id: {
+          bsonType: "string",
+          description: "must be a string and is required"
+        },
+        course_name: {
+          bsonType: "string",
+          description: "must be a string and is required"
+        },
+        course_description: {
+          bsonType: "string",
+          description: "must be a string and is required"
+        },
+        course_duration: {
+          bsonType: "string",
+          description: "must be a string and is required"
+        },
+        course_level: {
+          bsonType: "string",
+          description: "must be a string and is required"
+        },
+        graduation_date: {
+          bsonType: "date",
+          description: "must be of type date YYYY-MM-DD"
+        },
+        blob_link: {
+          bsonType: "string",
+          description: "URL link to the certificate blob"
         }
       }
     }
-  });
+  }
+});
   
 
   // Create a unique compound index on student_id and course_id

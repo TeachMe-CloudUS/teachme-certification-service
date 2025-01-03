@@ -1,6 +1,5 @@
 import json
-from dataclasses import dataclass, asdict
-from datetime import datetime
+from dataclasses import dataclass
 
 class StudentUpdateEvent:
     student_id: str
@@ -21,43 +20,6 @@ class StudentUpdateEvent:
             "userId": self.user_id,
            
         })
-
-@dataclass
-class CourseCompletedEvent:
-    student_id: str
-    student_userId: str
-    student_name: str
-    student_surname: str
-    student_email: str
-    course_id: str
-    course_name: str
-    course_description: str
-    course_duration: str
-    course_level: str
-    completionDate:str  # ISO-8601 format string
-    
-
-    @staticmethod
-    def from_json(data: dict):
-        """Convert JSON dictionary to a CourseCompletedEvent object."""
-        return CourseCompletedEvent(
-            student_id=data["student"]["id"],
-            student_userId=data["student"]["userId"],
-            student_name=data["student"]["name"],
-            student_surname=data["student"]["surname"],
-            student_email=data["student"]["email"],
-            course_id=data["course"]["courseId"],
-            course_name=data["course"]["courseName"],
-            course_description=data["course"]["courseDescription"],
-            course_duration=data["course"]["courseDuration"],
-            course_level=data["course"]["level"],
-            completionDate=data["completionDate"]           
-        )
-
-    def to_json(self):
-        """Convert the event to a JSON-compatible dictionary."""
-        return json.dumps(asdict(self))
-
 
 @dataclass
 class KafkaEvent:
