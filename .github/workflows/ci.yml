@@ -8,15 +8,6 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
-    services:
-      mongodb:
-        image: mongo:latest
-        ports:
-          - 27017:27017
-        env:
-          MONGO_INITDB_ROOT_USERNAME: admin
-          MONGO_INITDB_ROOT_PASSWORD: rootpassword123
-          MONGO_INITDB_DATABASE: certificate_db
 
     steps:
     - name: Checkout code
@@ -44,11 +35,24 @@ jobs:
         fi
         echo "Pylint completed with exit code: $pylint_exit_code"
 
-    - name: Run tests
-      env:
-        MONGO_DATABASE: certificate_db
-        MONGO_COLLECTION_NAME: student_certificates
-        MONGODB_URI_USER: mongodb://certification_service:userpassword123@localhost:27017/certificate_db
-        MONGODB_URI_ADMIN: mongodb://admin:rootpassword123@localhost:27017/admin
+    - name: Check Docker Compose version
+      run: docker-compose version
+
+    - name: Verify services are running
+      run: docker-compose ps
+
+    - name: Set up Docker Compose
       run: |
-          pytest tests/integration/test_database.py
+        docker-compose up -d mongodb
+          
+    - name: Wait for MongoDB to be ready
+      run: |
+        # Wait for MongoDB to initialize
+        until docker-compose exec -T mongodb mongosh --quiet --eval "db.runCommand('ping')"; do
+          sleep 2
+        done
+      
+    
+    - name: Run tests with docker environment settings of certification_service
+      run: |
+        docker-compose run --rm app pytest tests/integration/test_database.py
