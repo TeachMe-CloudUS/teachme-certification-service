@@ -29,29 +29,29 @@ jobs:
       run: sudo systemctl start docker
 
     - name: Check Docker Compose version
-      run: docker-compose version
+      run: docker compose version
 
     - name: Verify services are running
-      run: docker-compose ps
+      run: docker compose ps
 
     - name: Set up Docker Compose
       run: |
-        docker-compose up -d mongodb
+        docker compose up -d mongodb
           
     - name: Wait for MongoDB to be ready
       run: |
         # Wait for MongoDB to initialize
-        until docker-compose exec -T mongodb mongosh --quiet --eval "db.runCommand('ping')"; do
+        until docker compose exec -T mongodb mongosh --quiet --eval "db.runCommand('ping')"; do
           sleep 2
         done
 
     - name: Check MongoDB logs on failure
       if: failure()
-      run: docker-compose logs mongodb
+      run: docker compose logs mongodb
       
     - name: Run tests with docker environment settings of certification_service
       run: |
-        docker-compose run --rm app pytest tests/integration/test_database.py
+        docker compose run --rm app pytest tests/integration/test_database.py
       
     - name: Lint with pylint
       run: |
