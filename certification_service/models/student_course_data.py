@@ -27,7 +27,7 @@ class Student_Course_Data:
         Validate the event data.
         Raises ValueError if critical fields are missing or invalid.
         """
-        required_fields = ['student_id', 'student_userId', 'course_id']
+        required_fields = ['student_id', 'course_id']
         for field in required_fields:
             if not getattr(self, field):
                 raise ValueError(f"Missing required field: {field}")

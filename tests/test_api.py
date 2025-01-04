@@ -1,7 +1,7 @@
 import requests
 import pytest
 
-BASE_URL = "http://certification-service:8080/api/v1"
+BASE_URL = "http://certification_service:8080/api/v1"
 
 # Constants for frequently used student_id and course_id
 VALID_STUDENT_ID = 1

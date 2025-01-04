@@ -2,27 +2,33 @@ import unittest
 from unittest.mock import patch, MagicMock
 from confluent_kafka import KafkaError, Message
 from certification_service.kafka.consumer import consume_course_completed_events
+from certification_service.kafka.consumer import process_event 
 from certification_service.models.student_course_data import Student_Course_Data
 from dataclasses import asdict
 import json
+
 
 class TestKafkaConsumer(unittest.TestCase):
     def setUp(self):
         # Create a mock consumer
         self.mock_consumer = MagicMock()
 
-    def test_consumer_empty_message(self):
-        # Test handling of empty messages
+    @patch("certification_service.kafka.consumer.process_event")
+    def test_consumer_empty_message(self, mock_process_event):
+        """Test handling of empty messages."""
         self.mock_consumer.poll.return_value = None
-        
-        # Call consumer with a short timeout and few retries
-        consume_course_completed_events(self.mock_consumer, 'test-topic', timeout=0.1, max_empty_polls=1)
-        
-        # Verify consumer was subscribed and polled
-        self.mock_consumer.subscribe.assert_called_once_with(['test-topic'])
-        self.mock_consumer.poll.assert_called()
 
-    def test_consumer_valid_message(self):
+        # Call consumer with a short timeout and few retries
+        consume_course_completed_events(self.mock_consumer, timeout=0.1)
+
+        # Verify consumer was subscribed and polled
+        self.mock_consumer.subscribe.assert_called_once_with(['student-service.course.completed'])
+        self.mock_consumer.poll.assert_called()
+        mock_process_event.assert_not_called()
+
+    @patch("certification_service.kafka.consumer.process_event")
+    def test_consumer_valid_message(self, mock_process_event):
+        """Test handling of valid messages."""
         # Create an instance of Student_Course_Data
         student_course_data = Student_Course_Data(
             student_id='123',
@@ -34,41 +40,47 @@ class TestKafkaConsumer(unittest.TestCase):
             course_level='Beginner',
             completionDate='2025-01-03T10:00:00+01:00'
         )
-        
+
         # Create a mock message
         mock_msg = MagicMock(spec=Message)
         mock_msg.error.return_value = None
         mock_msg.value.return_value = json.dumps(asdict(student_course_data)).encode('utf-8')
-        
+
         # Set up consumer to return one valid message then None
         self.mock_consumer.poll.side_effect = [mock_msg, None]
-        
+
         # Call consumer
-        consume_course_completed_events(self.mock_consumer, 'test-topic', timeout=0.1, max_empty_polls=1)
-        
+        consume_course_completed_events(self.mock_consumer, timeout=0.1)
+
         # Verify consumer processed the message
-        self.mock_consumer.subscribe.assert_called_once_with(['test-topic'])
+        self.mock_consumer.subscribe.assert_called_once_with(['student-service.course.completed'])
         self.assertEqual(self.mock_consumer.poll.call_count, 2)
         self.mock_consumer.commit.assert_called_once_with(mock_msg)
+        mock_process_event.assert_called_once_with(mock_msg)
 
-    def test_consumer_invalid_message(self):
+    @patch("certification_service.kafka.consumer.process_event")
+    def test_consumer_invalid_message(self, mock_process_event):
+        """Test handling of invalid messages."""
         # Create a mock message with invalid data
         mock_msg = MagicMock(spec=Message)
         mock_msg.error.return_value = None
         mock_msg.value.return_value = b'{"studentId": 123, "userId": "789", "courseId": 456}'  # Invalid: studentId and courseId should be strings
-        
+
         # Set up consumer to return one invalid message then None
         self.mock_consumer.poll.side_effect = [mock_msg, None]
-        
+
         # Call consumer
-        consume_course_completed_events(self.mock_consumer, 'test-topic', timeout=0.1, max_empty_polls=1)
-        
-        # Verify consumer did not process the message
-        self.mock_consumer.subscribe.assert_called_once_with(['test-topic'])
+        consume_course_completed_events(self.mock_consumer, timeout=0.1)
+
+        # Verify consumer did not process the message successfully
+        self.mock_consumer.subscribe.assert_called_once_with(['student-service.course.completed'])
         self.assertEqual(self.mock_consumer.poll.call_count, 2)
         self.mock_consumer.commit.assert_not_called()
+        mock_process_event.assert_called_once_with(mock_msg)
 
-    def test_consumer_error_message(self):
+    @patch("certification_service.kafka.consumer.process_event")
+    def test_consumer_error_message(self, mock_process_event):
+        """Test handling of Kafka error messages."""
         # Create a mock message with an error
         mock_msg = MagicMock(spec=Message)
         mock_error = MagicMock(spec=KafkaError)
@@ -76,17 +88,19 @@ class TestKafkaConsumer(unittest.TestCase):
         mock_msg.error.return_value = mock_error
         mock_msg.topic.return_value = 'test-topic'
         mock_msg.partition.return_value = 0
-        
+
         # Set up consumer to return one error message then None
         self.mock_consumer.poll.side_effect = [mock_msg, None]
-        
+
         # Call consumer
-        consume_course_completed_events(self.mock_consumer, 'test-topic', timeout=0.1, max_empty_polls=1)
-        
+        consume_course_completed_events(self.mock_consumer, timeout=0.1)
+
         # Verify consumer handled the error and continued
-        self.mock_consumer.subscribe.assert_called_once_with(['test-topic'])
+        self.mock_consumer.subscribe.assert_called_once_with(['student-service.course.completed'])
         self.assertEqual(self.mock_consumer.poll.call_count, 2)
         self.mock_consumer.commit.assert_not_called()
+        mock_process_event.assert_not_called()
+
 
 if __name__ == '__main__':
     unittest.main()
