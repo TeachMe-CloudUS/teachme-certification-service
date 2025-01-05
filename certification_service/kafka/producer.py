@@ -49,6 +49,10 @@ def create_payload(student_course_data, blob_url, success, error_message=None):
         return {
             "studentId": student_course_data.student_id,
             "courseId": student_course_data.course_id,
+            "userId": student_course_data.student_userId,
+            "studentName": student_course_data.student_name,
+            "studentSurname": student_course_data.student_surname,
+            "courseName": student_course_data.course_name,
             "status": "success",
             "message": f"Student with ID {student_course_data.student_id} for Course {student_course_data.course_id} was successfully certified.",
             "blobUrl": blob_url
@@ -56,6 +60,10 @@ def create_payload(student_course_data, blob_url, success, error_message=None):
     return {
         "studentId": student_course_data.student_id,
         "courseId": student_course_data.course_id,
+        "userId": student_course_data.student_userId,
+        "studentName": student_course_data.student_name,
+        "studentSurname": student_course_data.student_surname,
+        "courseName": student_course_data.course_name,
         "status": "failure",
         "error": error_message,
         "message": f"Certification failed for student with ID {student_course_data.student_id} and course {student_course_data.course_id}.",
@@ -76,7 +84,7 @@ def send_certification_notification(student_course_data, blob_url, success, erro
         logger.error("Invalid student_course_data provided.")
         return
 
-    certification_topic = 'certification-service-certification.created'
+    certification_topic = 'certification-service.certificate.created'
     payload = create_payload(student_course_data, blob_url, success, error_message)
 
     try:

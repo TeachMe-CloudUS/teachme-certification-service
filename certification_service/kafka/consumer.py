@@ -45,13 +45,10 @@ def consume_course_completed_events(consumer, timeout=1.0):
     try:
         while running:  # Use the running flag for graceful shutdown
             msg = consumer.poll(timeout)
+            if msg is None:
+                continue
             if msg.error():
-                if msg.error().code() == KafkaError._PARTITION_EOF:
-                    logger.debug("End of partition reached for %s [%d]", msg.topic(), msg.partition())
-                    continue
-                else:
-                    logger.error("Consumer error: %s", msg.error())
-                    break
+                raise KafkaException(msg.error())
 
             process_event(msg)
 

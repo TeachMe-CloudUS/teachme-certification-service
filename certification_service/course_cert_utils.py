@@ -94,13 +94,11 @@ def certify_student(student_course_data: Student_Course_Data = None):
         f"in course {student_course_data.course_id}")
         blob_storage_service.delete_blob(blob_name)
         
-        # Send failure notification
-        send_certification_notification(student_course_data, blob_url, False, "Failed to store certificate")
         return None
-    
+
     # Send success notification
     send_certification_notification(student_course_data, blob_url, True)
-    
+
     return blob_url
 
 def update_certs(student_id):

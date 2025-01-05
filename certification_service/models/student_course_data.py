@@ -48,10 +48,10 @@ class Student_Course_Data:
             student_name=data["student"]["name"],
             student_surname=data["student"]["surname"],
             student_email=data["student"]["email"],
-            course_id=data["course"]["courseId"],
-            course_name=data["course"]["courseName"],
-            course_description=data["course"]["courseDescription"],
-            course_duration=data["course"]["courseDuration"],
+            course_id=data["course"]["id"],
+            course_name=data["course"]["name"],
+            course_description=data["course"]["description"],
+            course_duration=data["course"]["duration"],
             course_level=data["course"]["level"],
             completionDate=data["completionDate"]           
         )
