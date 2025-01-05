@@ -29,8 +29,15 @@ class Student_Course_Data:
         """
         required_fields = ['student_id', 'course_id']
         for field in required_fields:
-            if not getattr(self, field):
-                raise ValueError(f"Missing required field: {field}")
+            value = getattr(self, field)
+            if not value or value.strip() == "": 
+                raise ValueError(f"Missing or empty required field: {field}")
+
+        optional_fields = ['student_userId', 'student_name', 'student_surname', 'student_email', 'course_name', 'course_description', 'course_duration', 'course_level', 'completionDate']
+        for field in optional_fields:
+            value = getattr(self, field)
+            if value is not None and value.strip() == "": 
+                raise ValueError(f"Field {field} cannot be an empty string if provided.")
 
     @staticmethod
     def from_json(data: dict):

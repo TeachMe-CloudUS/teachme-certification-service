@@ -20,7 +20,8 @@ def route_certify():
     """Certify a student by generating a PDF certificate."""
     # Assuming the request body contains the necessary data
     data = request.get_json()
-    student_course_data = Student_Course_Data(
+    try:
+        student_course_data = Student_Course_Data(
         student_id=data.get('student_id'),
         student_userId=data.get('student_userId'),
         student_name=data.get('student_name'),
@@ -31,16 +32,20 @@ def route_certify():
         course_description=data.get('course_description'),
         course_duration=data.get('course_duration'),
         course_level=data.get('course_level'),
-        completionDate=data.get('completionDate')
-    )
-    
-    success =certify_student(student_course_data)
-    if not success:
+        completionDate=data.get('completionDate'))
+        
+        success = certify_student(student_course_data)
+        if not success:
+            return jsonify({
+                "Error": "Certification failed",
+                "Reason": "Certificate already exists"
+            }), 400
+        return jsonify({"success": success}), 200
+        
+    except ValueError as e:
         return jsonify({
-            "Error": "Certification failed, possible reasons: "
-            "Certificate already exists or missing or invalid student/course data"
-        }), 500
-    return jsonify({"success": success}), 200
+            "Error": f"Certification failed: {str(e)}"
+        }), 400
 
 @certification_bp.route('/api/v1/certificates/<int:student_id>', methods=['GET'])
 def route_get_all_certificates(student_id):

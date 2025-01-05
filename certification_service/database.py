@@ -14,6 +14,11 @@ class DatabaseConnection:
         self.db = None
         self.certificates_collection = None
         self._initialized = False
+        try:
+            self.init_mongodb()
+        except Exception as e:
+            logger.error(f"Database initialization failed: {e}")
+            self._initialized = False
 
     def init_mongodb(self):
         """Initialize MongoDB connection with retry logic."""
