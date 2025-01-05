@@ -30,17 +30,17 @@ def create_app():
 
         except Exception as e:
             logger.error(f"Failed to start Kafka consumer: {str(e)}")
-    
-    consumer_thread = threading.Thread(target=run_consumer)
-    consumer_thread.start()
-    
+
     # Initialize database connection
     try:
         db_connection.init_mongodb()
     except Exception as e:
         logger.error(f"Failed to initialize database: {str(e)}")
         raise
-    
+
+    consumer_thread = threading.Thread(target=run_consumer)
+    consumer_thread.start()
+
     # Call the function to ensure the certificate, key, and PFX file exist
     ensure_certificate_and_key_exist()
 

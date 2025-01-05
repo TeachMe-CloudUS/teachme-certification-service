@@ -92,7 +92,7 @@ class DatabaseConnection:
         """Check if the MongoDB connection is healthy."""
         try:
             if self.client is not None:
-                self.client.command('ping')
+                self.client.admin.command('ping')
                 return True, "Connected"
             return False, "Client not initialized"
         except Exception as e:

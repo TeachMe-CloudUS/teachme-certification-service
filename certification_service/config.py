@@ -35,7 +35,6 @@ def validate_environment_variables():
         'SIGNATURE_BOX',
         
         # MongoDB Configuration
-        'MONGODB_URI_ADMIN',
         'MONGODB_URI_USER',
         
         'CERTIFICATES_DIR',
