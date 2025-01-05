@@ -11,11 +11,15 @@ from certification_service.routes.monitoring_routes import monitoring_bp
 from certification_service.cert_management import ensure_certificate_and_key_exist
 from certification_service.database import db_connection
 from certification_service.kafka.consumer import start_consumer
+from certification_service.routes.certification_routes import certification_bp
 
 # Register the Blueprint
 def create_app():
     # Initialize Flask app
     app = Flask(__name__)
+    swagger = Swagger(app)
+    app.register_blueprint(certification_bp)
+
 
     # Start Kafka consumer
     def run_consumer():
