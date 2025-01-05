@@ -9,9 +9,9 @@ services:
       - MONGO_PORT=27017
       - MONGO_HOST=teachme-certification-c.oh7xd.mongodb.net
       - MONGO_COLLECTION_NAME=student_certificates
-      - MONGO_USERNAME=teachme-certification-service
-      - MONGO_PASSWORD=yWYuw4Vj6ARlfD4m
-      - MONGODB_URI_USER=mongodb+srv://teachme-certification-service:yWYuw4Vj6ARlfD4m@teachme-certification-c.oh7xd.mongodb.net/?retryWrites=true&w=majority&appName=teachme-certification-cluster
+      - MONGO_USERNAME=certification_service
+      - MONGO_PASSWORD=userpassword123
+      - MONGODB_URI_USER=mongodb://certification_service:userpassword123@mongodb:27017/certificate_db
       - AZURE_STORAGE_ACCOUNT_NAME=devstoreaccount1
       - AZURE_STORAGE_ACCOUNT_KEY=Eby8vdM02xNOcqFlqUwJPLlmEtlCDXJ1OUzFT50uSRZ6IFsuFq2UVErCz4I6tq/K1SZFPTOtr/KBHBeksoGMGw==
       - BLOB_STORAGE_CONTAINER_NAME=certificates
@@ -128,6 +128,7 @@ services:
     depends_on:
       - azurite
       - app
+      - mongodb
     environment:
       - MONGO_DATABASE=certificate_db
       - MONGO_PORT=27017
@@ -152,7 +153,12 @@ services:
       - ./certificates:/app/certificates
     networks:
       - certification-service-network
-    command: pytest tests/test_api.py
+    command: >
+      sh -c "
+        pytest tests/test_api.py &&
+        pytest /app/tests/integration/test_database.py
+      "
+
 
 
 volumes:

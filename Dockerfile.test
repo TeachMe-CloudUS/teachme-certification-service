@@ -9,16 +9,17 @@ RUN apt-get update && apt-get install -y curl netcat-traditional && rm -rf /var/
 RUN mkdir -p /app/certificates
 
 # Copy requirements and install dependencies
-COPY requirements.txt .
-RUN pip install --no-cache-dir -r requirements.txt
-RUN pip install pytest pytest-cov
-
-# Set Python path
-ENV PYTHONPATH=/app
+COPY pyproject.toml .
 
 # Copy application code and tests
 COPY certification_service /app/certification_service
 COPY tests /app/tests
+
+RUN pip install --no-cache-dir .
+RUN pip install pytest pytest-cov
+
+# Set Python path
+ENV PYTHONPATH=/app
 
 # Default command to run tests
 CMD ["pytest", "-v", "--cov=certification_service", "tests/"]

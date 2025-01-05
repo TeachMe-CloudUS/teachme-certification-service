@@ -30,11 +30,45 @@ jobs:
     - name: Install dependencies
       run: |
         python -m pip install --upgrade pip
-        pip install pytest pymongo python-dotenv
-        pip install -r requirements.txt
-        pip install pylint
+        pip install .
         pip install pytest
+        pip install pylint
 
+    - name: Start Docker service
+      run: sudo systemctl start docker
+
+    - name: Check Docker Compose version
+      run: docker compose version
+
+    - name: Verify services are running
+      run: docker compose ps
+
+    - name: Set up Docker Compose
+      run: |
+        docker compose up -d mongodb
+          
+    - name: Wait for MongoDB to be ready
+      run: |
+        retries=0
+        max_retries=10
+        until docker compose exec -T mongodb mongosh --quiet --eval "db.adminCommand({ ping: 1 })" | grep -q 'ok'; do
+          retries=$((retries+1))
+          if [ $retries -ge $max_retries ]; then
+            echo "MongoDB failed to initialize after $max_retries retries."
+            exit 1
+          fi
+          echo "Waiting for MongoDB to initialize... Retry #$retries"
+          sleep 2
+        done
+
+    - name: Check MongoDB logs on failure
+      if: failure()
+      run: docker compose logs mongodb
+      
+    - name: Run tests with test_runner
+      run: |
+        docker compose run --rm test_runner
+      
     - name: Lint with pylint
       run: |
         pylint certification_service > pylint_report.txt || true
@@ -44,12 +78,3 @@ jobs:
           exit 1
         fi
         echo "Pylint completed with exit code: $pylint_exit_code"
-
-    - name: Run tests
-      env:
-        MONGO_DATABASE: certificate_db
-        MONGO_COLLECTION_NAME: student_certificates
-        MONGODB_URI_USER: mongodb://certification_service:userpassword123@localhost:27017/certificate_db
-        MONGODB_URI_ADMIN: mongodb://admin:rootpassword123@localhost:27017/admin
-      run: |
-          pytest tests/integration/test_database.py

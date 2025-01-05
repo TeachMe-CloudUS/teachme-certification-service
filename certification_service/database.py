@@ -47,7 +47,7 @@ class DatabaseConnection:
                 else:
                     self.db = self.client[database]
 
-                
+
                 if self.db is None:
                     logger.error(f"Database '{database}' not found")
                     raise ValueError(f"Database '{database}' not found")
@@ -127,7 +127,7 @@ class DatabaseConnection:
             return self.certificates_collection.find_one({'_id': result.inserted_id})
         
         except errors.DuplicateKeyError:
-            logger.warning(f"Certificate already exists for student {student_course_data.student_id} " 
+            logger.error(f"Certificate already exists for student {student_course_data.student_id} " 
             f"in course {student_course_data.course_id}")
             return None
 
@@ -175,6 +175,31 @@ class DatabaseConnection:
             # Log any database errors
             logger.error(f"Error retrieving blob links to certificates for student {student_id}: {str(e)}")
             raise
+
+
+    def delete_certificate(self, student_id, course_id):
+        """Delete a certificate for a specific student and course from MongoDB."""
+        try:
+            # Find the certificate to delete
+            certificate = self.certificates_collection.find_one({
+                'student_id': student_id,
+                'course_id': course_id
+            }) 
+            if certificate:
+                result = self.certificates_collection.delete_one({
+                    '_id': certificate['_id']
+                })
+                logger.info(f"Deleted certificate for student {student_id} in course {course_id}")
+                
+                return True
+            else:
+                # Log that no certificate was found
+                logger.warning(f"No certificate found for student {student_id} in course {course_id}")
+                return False
+        except Exception as e:
+            # Log any database errors
+            logger.error(f"Error deleting certificate for student {student_id} in course {course_id}: {str(e)}")
+            return False
 
     def delete_all_certs(self, student_id):
         """Delete all certificates for a specific student from MongoDB."""

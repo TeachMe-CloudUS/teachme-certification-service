@@ -35,34 +35,40 @@ mongosh admin --quiet <<EOF
  // Create the collection with schema validation
  db.createCollection('$MONGO_COLLECTION_NAME', {
   validator: {
-    $jsonSchema: {
+    \$jsonSchema: {
       bsonType: "object",
       required: [
-        "student_id", 
-        "name", 
-        "surname", 
-        "email", 
+        "student_id",
+        "student_userId 
+        "student_name", 
+        "student_surname", 
+        "student_email", 
         "course_id", 
-        "graduation_date",
         "course_name",
+        "graduation_date",
         "course_description",
         "course_duration",
-        "course_level"
+        "course_level",
+        "completionDate"
       ],
       properties: {
         student_id: {
           bsonType: "string",
           description: "must be a string and is required"
         },
-        name: {
+        student_userId: {
           bsonType: "string",
           description: "must be a string and is required"
         },
-        surname: {
+        student_name: {
           bsonType: "string",
           description: "must be a string and is required"
         },
-        email: {
+        student_surname: {
+          bsonType: "string",
+          description: "must be a string and is required"
+        },
+        student_email: {
           bsonType: "string",
           pattern: "^[^@\\s]+@[^@\\s]+\\.[^@\\s]+\$",
           description: "must be a valid email address"
@@ -87,9 +93,9 @@ mongosh admin --quiet <<EOF
           bsonType: "string",
           description: "must be a string and is required"
         },
-        graduation_date: {
-          bsonType: "date",
-          description: "must be of type date YYYY-MM-DD"
+        completionDate: {
+          bsonType: "string",
+          description: "must be of type string in ISO 8601 format"
         },
         blob_link: {
           bsonType: "string",

@@ -1,98 +1,104 @@
-import os
 import pytest
-from pymongo import MongoClient, errors
-from dotenv import load_dotenv
-from datetime import datetime
 from certification_service.database import DatabaseConnection
-from certification_service.models.student_Course_Data import Student_Course_Data
+from certification_service.models.student_course_data import Student_Course_Data
 
-load_dotenv()
-
-def get_mongodb_client(uri_var='MONGODB_URI_USER'):
-    """Create and return a MongoDB client using connection string from environment variables."""
+@pytest.fixture(scope="function")
+def clean_database():
+    """
+    Fixture to ensure a clean database state before each test.
+    
+    Scope is 'function' to reset database for each individual test.
+    This prevents tests from interfering with each other.
+    """
+    # Create a database connection
+    db_connection = DatabaseConnection()
+    
     try:
-        connection_string = os.getenv(uri_var)
+        # Drop the entire collection before the test
+        db_connection.certificates_collection.drop()
         
-        client = MongoClient(
-            connection_string, 
-            connectTimeoutMS=5000,  
-            serverSelectionTimeoutMS=5000  
-        )
+        # Yield the database connection so tests can use it
+        yield db_connection
+    
+    finally:
+        # Optional: Drop the collection again after the test to ensure cleanup
+        db_connection.certificates_collection.drop()
         
-        client.server_info()
-        return client
-    except Exception as e:
-        pytest.fail(f"MongoDB connection failed for {uri_var}: {e}")
+        # Close the database connection
+        db_connection.close()
 
-def create_test_student_course_data():
-    """Create a sample Student_Course_Data instance for testing."""
+def create_test_student_course_data(student_id=None, course_id=None):
+    """
+    Create a test Student_Course_Data instance.
+    
+    Args:
+        student_id (str, optional): Custom student ID
+        course_id (str, optional): Custom course ID
+    
+    Returns:
+        Student_Course_Data: A test data instance
+    """
     return Student_Course_Data(
-        student_id='test_student_123',
-        student_userId='test_user_456',
-        student_name='John',
-        student_surname='Doe',
-        student_email='john.doe@example.com',
-        course_id='test_course_789',
-        course_name='Test Course',
-        course_description='A comprehensive test course',
-        course_duration='12 weeks',
-        course_level='Intermediate',
-        completionDate='2024-01-03T12:00:00Z'
+        student_id=student_id or "test_student_123",
+        student_userId="test_user_456",
+        student_name="Test",
+        student_surname="Student",
+        student_email="test.student@example.com",
+        course_id=course_id or "test_course_789",
+        course_name="Test Course",
+        course_description="A test course description",
+        course_duration="6 months",
+        course_level="Intermediate",
+        completionDate="2025-01-05"
     )
 
-def test_database_connection():
-    """Test database connection and initialization."""
-    db_connection = DatabaseConnection()
-    assert db_connection._initialized, "Database connection should be initialized"
+def test_database_connection(clean_database):
+    """Test establishing a database connection."""
+    db_connection = clean_database
+    assert db_connection.certificates_collection is not None, "Failed to establish database connection"
 
-def test_store_certificate():
-    """Test storing a certificate."""
-    db_connection = DatabaseConnection()
+def test_store_certificate(clean_database):
+    """Test storing a certificate in the database."""
+    db_connection = clean_database
     student_course_data = create_test_student_course_data()
     blob_url = 'https://example.com/test-certificate.pdf'
     
     # Store certificate
     stored_cert = db_connection.store_certificate(student_course_data, blob_url)
     
-    assert stored_cert is not None, "Certificate should be stored successfully"
-    assert stored_cert['student_id'] == student_course_data.student_id, "Stored student ID should match"
-    assert stored_cert['blob_link'] == blob_url, "Blob URL should be stored correctly"
+    assert stored_cert is not None, "Failed to store certificate"
+    assert stored_cert['student_id'] == student_course_data.student_id
+    assert stored_cert['course_id'] == student_course_data.course_id
+    assert stored_cert['blob_link'] == blob_url
 
-def test_retrieve_certificate():
-    """Test retrieving a specific certificate."""
-    db_connection = DatabaseConnection()
-    student_course_data = create_test_student_course_data()
-    blob_url = 'https://example.com/test-certificate.pdf'
-    
-    # Store certificate first
-    db_connection.store_certificate(student_course_data, blob_url)
-    
-    # Retrieve certificate
-    retrieved_cert = db_connection.get_certificate_by_student_and_course(
-        student_course_data.student_id, 
-        student_course_data.course_id
-    )
-    
-    assert retrieved_cert is not None, "Certificate should be retrievable"
-    assert retrieved_cert['student_name'] == student_course_data.student_name, "Retrieved student name should match"
-
-def test_duplicate_certificate_prevention():
+def test_duplicate_certificate_prevention(clean_database):
     """Test that duplicate certificates are prevented."""
-    db_connection = DatabaseConnection()
     student_course_data = create_test_student_course_data()
     blob_url = 'https://example.com/test-certificate.pdf'
     
-    # First storage should succeed
-    first_store = db_connection.store_certificate(student_course_data, blob_url)
-    assert first_store is not None, "First certificate storage should succeed"
+    # First certificate storage should succeed
+    first_cert = clean_database.store_certificate(student_course_data, blob_url)
+    assert first_cert is not None, "First certificate storage failed"
     
-    # Second storage should fail (duplicate)
-    second_store = db_connection.store_certificate(student_course_data, blob_url)
-    assert second_store is None, "Second certificate storage should fail due to duplicate"
+    # Second certificate with same student and course should return None
+    second_cert = clean_database.store_certificate(student_course_data, blob_url)
+    assert second_cert is None, "Second certificate storage should return None for duplicate"
 
-def test_delete_certificate():
+def test_mongodb_connection_and_collection(clean_database):
+    """Comprehensive test of MongoDB connection and collection."""
+    db_connection = clean_database
+    
+    # Verify collection exists
+    assert db_connection.certificates_collection is not None, "Certificates collection not found"
+    
+    # Verify initial collection is empty
+    initial_count = db_connection.certificates_collection.count_documents({})
+    assert initial_count == 0, f"Collection should be empty, but contains {initial_count} documents"
+
+def test_delete_certificate(clean_database):
     """Test deleting a certificate."""
-    db_connection = DatabaseConnection()
+    db_connection = clean_database
+    
     student_course_data = create_test_student_course_data()
     blob_url = 'https://example.com/test-certificate.pdf'
     
@@ -100,31 +106,56 @@ def test_delete_certificate():
     db_connection.store_certificate(student_course_data, blob_url)
     
     # Delete certificate
-    deleted, message = db_connection.delete_certificate(
+    deleted = db_connection.delete_certificate(
         student_course_data.student_id, 
         student_course_data.course_id
     )
     
-    assert deleted, f"Certificate deletion failed: {message}"
-
-def test_mongodb_connection_and_collection():
-    """Comprehensive test of MongoDB connection and collection."""
-    client = get_mongodb_client('MONGODB_URI_USER')
+    assert deleted, "Certificate deletion failed"
     
-    try:
-        # Verify database exists
-        db_name = os.getenv('MONGO_DATABASE')
-        assert db_name in client.list_database_names(), "Expected database not found"
-        
-        # Verify collection exists
-        db = client[db_name]
-        collection_name = os.getenv('MONGO_COLLECTION_NAME', 'student_certificates')
-        assert collection_name in db.list_collection_names(), "Expected collection not found"
-        
-        # Verify collection can be accessed
-        collection = db[collection_name]
-        collection.count_documents({})
-    except Exception as e:
-        pytest.fail(f"MongoDB collection access failed: {e}")
-    finally:
-        client.close()
+    # Verify the certificate is no longer in the database
+    retrieved_cert = db_connection.get_course_cert(
+        student_course_data.student_id, 
+        student_course_data.course_id
+    )
+    assert retrieved_cert is None, "Certificate was not deleted from the database"
+
+def test_retrieve_certificate(clean_database):
+    """Test retrieving a specific certificate."""
+    student_course_data = create_test_student_course_data()
+    blob_url = 'https://example.com/test-certificate.pdf'
+    
+    # Store certificate
+    clean_database.store_certificate(student_course_data, blob_url)
+    
+    # Retrieve certificate blob link
+    retrieved_blob_link = clean_database.get_course_cert(
+        student_course_data.student_id, 
+        student_course_data.course_id
+    )
+    
+    assert retrieved_blob_link is not None, "Failed to retrieve certificate blob link"
+    assert retrieved_blob_link == blob_url, "Retrieved blob link does not match stored blob link"
+
+def test_delete_all_certs(clean_database):
+    """Test deleting all certificates for a student."""
+    db_connection = clean_database
+    
+    # Create multiple certificates for the same student
+    student_id = "test_student_1"
+    certificates_data = [
+        create_test_student_course_data(student_id=student_id, course_id="course1"),
+        create_test_student_course_data(student_id=student_id, course_id="course2"),
+        create_test_student_course_data(student_id=student_id, course_id="course3")
+    ]
+    
+    # Store multiple certificates
+    for cert_data in certificates_data:
+        db_connection.store_certificate(cert_data, f'https://example.com/{cert_data.course_id}-certificate.pdf')
+    
+    # Delete all certificates for the student
+    db_connection.delete_all_certs(student_id)
+    
+    # Verify no certificates remain for the student
+    remaining_certs = db_connection.get_all_course_certs(student_id)
+    assert len(remaining_certs) == 0, "Not all certificates were deleted"
