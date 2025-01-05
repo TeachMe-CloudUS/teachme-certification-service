@@ -43,7 +43,7 @@ BASE_PAYLOAD = {
 # Test for POST /certify 
 def test_certify_valid_data():
     response = requests.post(f"{BASE_URL}/certify", json=BASE_PAYLOAD)
-    assert response.status_code == 200
+    assert response.status_code == 201
     assert isinstance(response.json()['success'], str) and response.json()['success'].startswith('http')
 
 def test_certify_invalid_student_id():
@@ -100,6 +100,11 @@ def test_get_course_certificate_invalid_course():
     assert response.status_code == 404
     assert "message" in response.json()
 
+def test_get_course_certificate_no_content():
+    response = requests.get(f"{BASE_URL}/certificates/{VALID_STUDENT_ID}/{VALID_COURSE_ID}")
+    assert response.status_code == 404
+    assert "message" in response.json()
+
 
 # Test for DELETE all certificates for a student
 def test_delete_student_certificates_valid():
@@ -110,5 +115,29 @@ def test_delete_student_certificates_valid():
 def test_delete_student_certificates_invalid():
     requests.post(f"{BASE_URL}/certify", json=BASE_PAYLOAD)
     response = requests.delete(f"{BASE_URL}/certificates/{INVALID_STUDENT_ID}")
-    assert response.status_code == 404
+    assert response.status_code == 400
     assert "message" in response.json()
+
+# Test for DELETE certificates for a student and course
+def test_delete_student_certificates_valid():
+    response = requests.delete(f"{BASE_URL}/certificates/{VALID_STUDENT_ID}/{VALID_COURSE_ID}")
+    assert response.status_code == 200
+    assert "Deleted" in response.json()["message"]
+
+def test_delete_student_certificates_invalidStudentID():
+    requests.post(f"{BASE_URL}/certify", json=BASE_PAYLOAD)
+    response = requests.delete(f"{BASE_URL}/certificates/{INVALID_STUDENT_ID}/{VALID_COURSE_ID}")
+    assert response.status_code == 400
+    assert "message" in response.json()
+
+def test_delete_student_certificates_invalidCourseID(): 
+    requests.post(f"{BASE_URL}/certify", json=BASE_PAYLOAD)
+    response = requests.delete(f"{BASE_URL}/certificates/{VALID_STUDENT_ID}/{INVALID_COURSE_ID}")
+    assert response.status_code == 400
+    assert "message" in response.json()
+
+def test_delete_student_certificates_noContent():
+    response = requests.delete(f"{BASE_URL}/certificates/{VALID_STUDENT_ID}/{VALID_COURSE_ID}")
+    assert response.status_code == 400
+    assert "message" in response.json()
+    
