@@ -14,6 +14,7 @@ from certification_service.blob_storage import blob_storage_service
 from certification_service.kafka.producer import send_certification_notification
 from certification_service.models.student_course_data import Student_Course_Data
 import certification_service.config as config
+from datetime import datetime
 
 def generate_certificate(student_course_data):
     """Generate and sign a PDF certificate for a student and a specific course."""

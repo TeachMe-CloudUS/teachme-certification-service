@@ -20,13 +20,21 @@ def route_certify():
     """Certify a student by generating a PDF certificate."""
     # Assuming the request body contains the necessary data
     data = request.get_json()
-
     student_course_data = Student_Course_Data(
         student_id=data.get('student_id'),
+        student_userId=data.get('student_userId'),
+        student_name=data.get('student_name'),
+        student_surname=data.get('student_surname'),
+        student_email=data.get('student_email'),
         course_id=data.get('course_id'),
-        # Populate other fields as necessary
+        course_name=data.get('course_name'),
+        course_description=data.get('course_description'),
+        course_duration=data.get('course_duration'),
+        course_level=data.get('course_level'),
+        completionDate=data.get('completionDate')
     )
-    success = certify_student(student_course_data)
+    
+    success =certify_student(student_course_data)
     if not success:
         return jsonify({
             "Error": "Certification failed, possible reasons: "

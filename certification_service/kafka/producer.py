@@ -75,7 +75,7 @@ def send_certification_notification(student_course_data, blob_url, success, erro
         logger.error("Invalid student_course_data provided.")
         return
 
-    certification_topic = 'certification-status'  # The Kafka topic for certification status updates
+    certification_topic = 'certification-service-certification.created'
     payload = create_payload(student_course_data, blob_url, success, error_message)
 
     try:
