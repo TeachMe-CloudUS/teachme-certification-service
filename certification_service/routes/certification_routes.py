@@ -66,11 +66,11 @@ def route_delete_student_certificates(student_id):
     """Delete all certificates for a student."""
     try:
         deleted_cert_count = delete_all_certs(student_id)
-        return jsonify({"message": f"Deleted {deleted_cert_count} certificate(s) for 
-                        student ID {student_id}"}), 200
+        return jsonify({"message": f"Deleted {deleted_cert_count} certificate(s) for"
+                        f"student ID {student_id}"}), 200
     except Exception as e:
-        return jsonify({"error": f"Failed to delete certificates for
-                        student ID {student_id}: {str(e)}"}), 500
+        return jsonify({"error": f"Failed to delete certificates for"
+                        f"student ID {student_id}: {str(e)}"}), 500
 
 @certification_bp.route('/api/v1/certificates/<int:student_id>/<int:course_id>', methods=['DELETE'])
 def route_delete_certificate(student_id, course_id):
@@ -81,5 +81,5 @@ def route_delete_certificate(student_id, course_id):
             return jsonify({"message": message}), 200
         return jsonify({"message": message}), 400 
     except Exception as e:
-        return jsonify({"error": f"Failed to delete certificate for student ID {student_id} 
-                        and course ID {course_id}: {str(e)}"}), 500
+        return jsonify({"error": f"Failed to delete certificate for student ID {student_id}"
+                        f"and course ID {course_id}: {str(e)}"}), 500
