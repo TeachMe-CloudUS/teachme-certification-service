@@ -19,7 +19,7 @@ services:
       - SIGNATURE_FIELD_NAME=Signature1
       - SIGNATURE_BOX=150,30,450,90
       - QR_CODE_URL=https://www.youtube.com/watch?v=dQw4w9WgXcQ
-      - MONGODB_URI_ADMIN=mongodb://${MONGO_INITDB_ROOT_USERNAME}:${MONGO_INITDB_ROOT_PASSWORD}@${MONGO_HOST}:${MONGO_PORT}/${MONGO_DATABASE}?authSource=admin
+      - MONGODB_URI_ADMIN=mongodb://admin:rootpassword123@mongodb:27017/certificate_db?authSource=admin
     ports:
       - "8080:8080"
     volumes:
@@ -49,6 +49,7 @@ services:
       - MONGO_COLLECTION_NAME=student_certificates
       - MONGO_USERNAME=certification_service
       - MONGO_PASSWORD=userpassword123
+      - MONGO_DATABASE=certificate_db
     ports:
       - "27017:27017"
     volumes:
@@ -129,15 +130,23 @@ services:
         condition: service_healthy
     environment:
       - MONGO_DATABASE=certificate_db
+      - MONGO_COLLECTION_NAME=student_certificates
       - MONGO_PORT=27017
       - MONGO_HOST=mongodb
       - MONGO_USERNAME=certification_service
       - MONGO_PASSWORD=userpassword123
+      - MONGODB_URI_USER=mongodb://certification_service:userpassword123@mongodb:27017/certificate_db    
+      - MONGODB_URI_ADMIN=mongodb://admin:rootpassword123@mongodb:27017/certificate_db?authSource=admin
+      - BLOB_STORAGE_CONNECTION_STRING=DefaultEndpointsProtocol=http;AccountName=devstoreaccount1;AccountKey=Eby8vdM02xNOcqFlqUwJPLlmEtlCDXJ1OUzFT50uSRZ6IFsuFq2UVErCz4I6tq/K1SZFPTOtr/KBHBeksoGMGw==;BlobEndpoint=http://azurite:10000/devstoreaccount1;
     volumes:
       - ./certification_service:/app/certification_service
       - ./tests:/app/tests
       - ./certificates:/app/certificates
-    command: pytest /app/tests
+    networks:
+      - certification-service-network
+    command: pytest /app/tests/integration/test_database.py
+
+
 
 volumes:
   kafka_data:

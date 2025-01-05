@@ -6,7 +6,6 @@ build-backend = "setuptools.build_meta"
 name = "teachme-certification-service"
 version = "0.1.0"
 description = "Certification Service for TeachMe"
-readme = "README.md"
 requires-python = ">=3.8"
 authors = [
     {name = "Julian Rotter, Lydia Payer", email = "julian.rotter@student.uibk.ac.at"}
@@ -48,12 +47,10 @@ dev = [
 certification-service = "certification_service.app:main"
 
 [tool.setuptools]
-packages = [
-    "certification_service", 
-    "certification_service.kafka", 
-    "certification_service.models", 
-    "certification_service.routes"
-]
+packages = ["certification_service", 
+            "certification_service.models", 
+            "certification_service.kafka", 
+            "certification_service.routes"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
