@@ -2,10 +2,11 @@ from confluent_kafka import Producer
 import json
 import signal
 from certification_service.logger import logger
+import os
 
 # Kafka Producer Configuration
 producer = Producer({
-    'bootstrap.servers': 'kafka:9092',
+    'bootstrap.servers': os.getenv('KAFKA_BOOTSTRAP_SERVER'),
     'acks': 'all',  # Ensure all replicas confirm the message
     'retries': 5     # Retry sending messages up to 5 times
 })

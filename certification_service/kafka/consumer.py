@@ -5,6 +5,7 @@ import threading
 from certification_service.course_cert_utils import certify_student
 from certification_service.logger import logger
 from certification_service.models.student_course_data  import Student_Course_Data
+import os
 
 running = True
 consumer_thread = None
@@ -75,8 +76,8 @@ def consume_course_completed_events(consumer, timeout=1.0):
 
 def create_consumer():
     conf = {
-        'bootstrap.servers': 'kafka:9092',
-        'group.id': 'notification-group',
+        'bootstrap.servers': os.getenv('KAFKA_BOOTSTRAP_SERVER'),
+        'group.id': 'certification-group',
         'auto.offset.reset': 'earliest'
     }
     return Consumer(conf)
