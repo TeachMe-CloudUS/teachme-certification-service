@@ -28,7 +28,7 @@ class DatabaseConnection:
         mongodb_uri = os.getenv('MONGODB_URI_USER')
         if not mongodb_uri:
             raise ValueError("Missing required mongodb URI environment variable")
-        else:
+            
         while retry_count < self.max_retries:
             try:
                 if self.client is None:
