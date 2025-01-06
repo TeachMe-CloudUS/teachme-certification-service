@@ -6,6 +6,8 @@ from pymongo.errors import ConnectionFailure, OperationFailure
 from certification_service.logger import logger
 from datetime import datetime
 
+logger = logging.getLogger(__name__)
+
 class DatabaseConnection:
     def __init__(self, max_retries: int = 5, retry_delay: int = 5):
         self.max_retries = max_retries
@@ -35,7 +37,6 @@ class DatabaseConnection:
                     logger.info("Attempting to connect to MongoDB...")
                     self.client = MongoClient(mongodb_uri)
                 
-                
                 # Set up database and collection
                 database = os.getenv('MONGO_DATABASE')
                 collection_name = os.getenv('MONGO_COLLECTION_NAME')
@@ -45,13 +46,20 @@ class DatabaseConnection:
                 else:
                     self.db = self.client[database]
 
-
                 if self.db is None:
                     logger.error(f"Database '{database}' not found")
                     raise ValueError(f"Database '{database}' not found")
                 else:
                     logger.info(f"Using database: {database}")
                     self.certificates_collection = self.db[collection_name]
+                    # Make sure that the combination of student_id and course_id is unique
+                    self.certificates_collection.create_index(
+                        [("student_id", 1), ("course_id", 1)],
+                        unique=True,
+                        partialFilterExpression={
+                            "student_id": {"$type": "string"},
+                            "course_id": {"$type": "string"}
+                    })
                     self._initialized = True
                 
                 logger.info("Successfully connected to MongoDB")
