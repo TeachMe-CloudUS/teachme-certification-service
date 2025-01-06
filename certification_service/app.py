@@ -12,6 +12,7 @@ from certification_service.cert_management import ensure_certificate_and_key_exi
 from certification_service.database import db_connection
 from certification_service.kafka.consumer import start_consumer
 from certification_service.routes.certification_routes import certification_bp
+from flasgger import Swagger
 
 # Register the Blueprint
 def create_app():
