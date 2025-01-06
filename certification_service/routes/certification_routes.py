@@ -41,7 +41,7 @@ def route_certify():
         }), 400
 
 @certification_bp.route('/api/v1/certificates/<string:student_id>', methods=['GET'])
-@swag_from('../swagger_docs/get_all_student_certificates.yml')
+@swag_from('../swagger_docs/get_all_certificates.yml')
 def route_get_all_certificates(student_id):
     """Get all certificates for a student."""
     certificates = get_all_certs(student_id)
@@ -78,7 +78,7 @@ def route_delete_all_student_certificates(student_id):
 @certification_bp.route('/api/v1/certificate/<string:student_id>/<string:course_id>', methods=['DELETE'])
 @swag_from('../swagger_docs/delete_course_certificate.yml')
 def route_delete_course_certificate(student_id, course_id):
-    """Delete a specific certificate for a student."""
+    """Delete a specific certificate for a student and course."""
     try:
         deleted = delete_cert(student_id, course_id)
         if deleted:
@@ -90,8 +90,7 @@ def route_delete_course_certificate(student_id, course_id):
     except Exception as e:
         return jsonify({"error": f"Failed to delete certificate for student ID {student_id} "
                                   f"and course ID {course_id}: {str(e)}"}), 500
-        
-        
+          
         
 @certification_bp.route('/api/v1/certificate/<string:student_id>/<string:course_id>', methods=['PUT'])
 @swag_from('../swagger_docs/update_course_certificate.yml')
@@ -109,3 +108,4 @@ def route_update_course_certificate(student_id, course_id):
     except Exception as e:
         return jsonify({"error": f"Failed to update certificate for student ID {student_id} "
                                   f"and course ID {course_id}: {str(e)}"}), 500
+    
