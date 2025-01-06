@@ -8,15 +8,6 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
-    services:
-      mongodb:
-        image: mongo:latest
-        ports:
-          - 27017:27017
-        env:
-          MONGO_INITDB_ROOT_USERNAME: admin
-          MONGO_INITDB_ROOT_PASSWORD: rootpassword123
-          MONGO_INITDB_DATABASE: certificate_db
 
     steps:
     - name: Checkout code
@@ -65,10 +56,14 @@ jobs:
       if: failure()
       run: docker compose logs mongodb
       
-    - name: Run tests with test_runner
+    - name: Run Database Integration Tests
       run: |
-        docker compose run --rm test_runner
-      
+        docker compose run --rm test_runner pytest tests/integration/test_database.py
+    
+    - name: Run API Tests
+      run: |
+        docker compose run --rm test_runner pytest tests/test_api.py
+
     - name: Lint with pylint
       run: |
         pylint certification_service > pylint_report.txt || true
