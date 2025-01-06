@@ -142,6 +142,13 @@ class DatabaseConnection:
             logger.error(f"Unexpected error storing certificate: {e}")
             raise
 
+    def adjust_blob_url(self, blob_url):
+        """Adjust the blob URL for development environment."""
+        if os.getenv('FLASK_ENV') == "development" and blob_url:
+            blob_url = blob_url.replace("http://azurite:10000/", "http://localhost:11000/")
+            logger.info(f"Adjusted blob URL for development: {blob_url}")
+        return blob_url
+
     def get_course_cert(self, student_id, course_id):
         """Get certificate for a specific course and student from MongoDB."""
         try:
@@ -183,7 +190,7 @@ class DatabaseConnection:
                     'courseDuration': cert.get('course_duration'),
                     'courseLevel': cert.get('course_level'),
                     'completionDate': cert.get('completionDate'),
-                    'blobLink': cert.get('blob_link')
+                    'blobLink': self.adjust_blob_url(cert.get('blob_link'))
                 } for cert in certificates]
             else:
                 # Log that no certificates were found

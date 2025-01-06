@@ -8,7 +8,7 @@ from flasgger import swag_from
 certification_bp = Blueprint('certification', __name__)
 
 @certification_bp.route('/api/v1/certify', methods=['POST'])
-@swag_from('swagger_docs/certify_student.yml')
+@swag_from('../swagger_docs/certify_student.yml')
 def route_certify():
     """Certify a student by generating a PDF certificate."""
     # Assuming the request body contains the necessary data
@@ -41,7 +41,7 @@ def route_certify():
         }), 400
 
 @certification_bp.route('/api/v1/certificates/<string:student_id>', methods=['GET'])
-@swag_from('swagger_docs/get_all_student_certificates.yml')
+@swag_from('../swagger_docs/get_all_student_certificates.yml')
 def route_get_all_certificates(student_id):
     """Get all certificates for a student."""
     certificates = get_all_certs(student_id)
@@ -50,7 +50,7 @@ def route_get_all_certificates(student_id):
     return jsonify(certificates), 200
 
 @certification_bp.route('/api/v1/certificates/<string:student_id>/<string:course_id>', methods=['GET'])
-@swag_from('swagger_docs/get_course_certificate.yml')
+@swag_from('../swagger_docs/get_course_certificate.yml')
 def route_get_course_certificate(student_id, course_id):
     """Get certificate for a specific course and student."""
     certificate = get_cert(student_id, course_id)
@@ -60,7 +60,7 @@ def route_get_course_certificate(student_id, course_id):
     return jsonify(certificate), 200
 
 @certification_bp.route('/api/v1/certificates/<string:student_id>', methods=['DELETE'])
-@swag_from('swagger_docs/delete_all_student_certificates.yml')
+@swag_from('../swagger_docs/delete_all_student_certificates.yml')
 def route_delete_all_student_certificates(student_id):
     """Delete all certificates for a student."""
     try:
@@ -76,7 +76,7 @@ def route_delete_all_student_certificates(student_id):
 
 
 @certification_bp.route('/api/v1/certificates/<string:student_id>/<string:course_id>', methods=['DELETE'])
-@swag_from('swagger_docs/delete_course_certificate.yml')
+@swag_from('../swagger_docs/delete_course_certificate.yml')
 def route_delete_course_certificate(student_id, course_id):
     """Delete a specific certificate for a student."""
     try:
@@ -93,7 +93,7 @@ def route_delete_course_certificate(student_id, course_id):
         
         
 @certification_bp.route('/api/v1/certificate/<string:student_id>/<string:course_id>', methods=['PUT'])
-@swag_from('swagger_docs/update_course_certificate.yml')
+@swag_from('../swagger_docs/update_course_certificate.yml')
 def route_update_course_certificate(student_id, course_id):
     """Update a certificate by deleting the old one and setting a new student name."""
     try:
