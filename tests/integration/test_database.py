@@ -158,6 +158,7 @@ def test_retrieve_certificate(clean_database):
 def test_delete_all_certs(clean_database):
     """Test deleting all certificates for a student."""
     db_connection = clean_database
+
     
     # Create multiple certificates for the same student
     student_id = "test_student_1"

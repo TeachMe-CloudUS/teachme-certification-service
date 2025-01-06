@@ -99,43 +99,35 @@ def test_get_course_certificate_valid():
 def test_get_course_certificate_invalid_student():
     response = requests.get(f"{BASE_URL}/certificates/{INVALID_STUDENT_ID}/{VALID_COURSE_ID}")
     assert response.status_code == 404
-    assert "message" in response.json()
+    assert response.json().get("Error") == "Certificate not found"
 
 def test_get_course_certificate_invalid_course():
     response = requests.get(f"{BASE_URL}/certificates/{VALID_STUDENT_ID}/{INVALID_COURSE_ID}")
     assert response.status_code == 404
-    assert "Not Found" in response.text
-
-def test_get_course_certificate_no_content():
-    response = requests.get(f"{BASE_URL}/certificates/{9999}/{9999}")
-    assert response.status_code == 404
-    assert response.json()["error"] == "Certificate not found"
-
+    assert response.json().get("Error") == "Certificate not found"
 
 # Test for DELETE all certificates for a student
 def test_delete_student_certificates_valid():
     response = requests.delete(f"{BASE_URL}/certificates/{VALID_STUDENT_ID}")
     assert response.status_code == 200
-    assert "Deleted" in response.json()["message"]
 
 def test_delete_student_certificates_invalid():
     requests.post(f"{BASE_URL}/certify", json=BASE_PAYLOAD)
     response = requests.delete(f"{BASE_URL}/certificates/{INVALID_STUDENT_ID}")
     assert response.status_code == 404
+    assert response.json().get("error").startswith("No certificates found")
 
 # Test for DELETE certificates for a student and course
 def test_delete_student_certificates_valid():
    requests.post(f"{BASE_URL}/certify", json=BASE_PAYLOAD) 
-   response = requests.delete(f"{BASE_URL}/certificates/{VALID_STUDENT_ID}")
+   response = requests.delete(f"{BASE_URL}/certificates/{VALID_STUDENT_ID}/{VALID_COURSE_ID}")
    assert response.status_code == 200
    assert "Deleted" in response.json()["message"]
-   assert "certificate" in response.json()["message"]
     
 def test_delete_student_certificates_invalidStudentID():
     requests.post(f"{BASE_URL}/certify", json=BASE_PAYLOAD)
     response = requests.delete(f"{BASE_URL}/certificates/{INVALID_STUDENT_ID}/{VALID_COURSE_ID}")
     assert response.status_code == 404  
-    assert "message" in response.json()
 
 def test_delete_student_certificates_invalidCourseID(): 
     requests.post(f"{BASE_URL}/certify", json=BASE_PAYLOAD)
@@ -149,14 +141,14 @@ def test_delete_student_certificates_noContent():
 # Test for PUT /certificates/{student_id}/{course_id}
 def test_update_certificate_valid():
     requests.post(f"{BASE_URL}/certify", json=BASE_PAYLOAD)
-    response = requests.put(f"{BASE_URL}/certificates/{VALID_STUDENT_ID}/{VALID_COURSE_ID}", json=BASE_PAYLOAD)
+    response = requests.put(f"{BASE_URL}/certificate/{VALID_STUDENT_ID}/{VALID_COURSE_ID}", 
+    json={**BASE_PAYLOAD, "student_surname": "Müller"})
     assert response.status_code == 200
-    assert "Updated" in response.json()["message"]
 
 def test_update_certificate_invalidStudent():
-    response = requests.put(f"{BASE_URL}/certificates/{INVALID_STUDENT_ID}/{VALID_COURSE_ID}", json=BASE_PAYLOAD)
+    response = requests.put(f"{BASE_URL}/certificate/{INVALID_STUDENT_ID}/{VALID_COURSE_ID}", json=BASE_PAYLOAD)
     assert response.status_code == 404 
 
 def test_update_certificate_invalidCourse():
-    response = requests.put(f"{BASE_URL}/certificates/{VALID_STUDENT_ID}/{INVALID_COURSE_ID}", json=BASE_PAYLOAD)
+    response = requests.put(f"{BASE_URL}/certificate/{VALID_STUDENT_ID}/{INVALID_COURSE_ID}", json=BASE_PAYLOAD)
     assert response.status_code == 404

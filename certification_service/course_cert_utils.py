@@ -139,12 +139,32 @@ def certify_student(student_course_data: Student_Course_Data = None):
 
     return blob_url
 
-def update_certs(student_id):
+def update_cert(student_id, course_id, new_student_surname):
     """Update certificates for a student and return list of updated certificates."""
-    # Implement the logic to update certificates
-    dummy_path_list = [os.path.join(config.CERTIFICATES_DIR, f"dummy_certificate_{student_id}.pdf")]
-    return dummy_path_list
+    try:
+        # Check if the certificate exists
+        existing_student_course = get_cert(student_id, course_id)
+        if not existing_student_course:
+            return None
 
+        # Delete the existing certificate
+        delete_success = delete_cert(student_id, course_id)
+        if not delete_success:
+            return None
+
+        # Create a new certificate with the new student name
+        updated_student_course = existing_student_course
+        updated_student_course.student_surname = new_student_surname
+        blob_link = certify_student(updated_student_course)
+        if not certify_success:
+            return None
+        else:
+            return blob_link
+
+    except Exception as e:
+        logger.error(f"Error updating student certificate for student_id {student_id} and course_id {course_id}: {str(e)}")
+        raise
+ 
 def get_all_certs(student_id):
     """Get all certificates for a student."""
     # Implement the logic to get all certificates
@@ -157,6 +177,11 @@ def get_cert(student_id, course_id):
     # Implement the logic to get a specific certificate
     cert_link = db_connection.get_course_cert(student_id, course_id)
     return cert_link
+
+def delete_cert(student_id, course_id):
+    """Delete one certificate"""
+    deleted_boolean = db_connection.delete_certificate(student_id, course_id)
+    return deleted_boolean
 
 def delete_all_certs(student_id):
     """Delete all certificates for a student."""
