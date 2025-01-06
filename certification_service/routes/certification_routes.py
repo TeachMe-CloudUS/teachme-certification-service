@@ -98,9 +98,11 @@ def route_update_course_certificate(student_id, course_id):
     """Update a certificate by deleting the old one and setting a new student name."""
     try:
         new_student_name = request.json.get('student_surname')
+        logger.info(f"Attempting to update certificate with new surname: {new_student_name}")
         updated_certificate = update_cert(student_id, course_id, new_student_name)
+        logger.info(f"Update certificate result: {updated_certificate}")
         if updated_certificate:
-            return jsonify({"message": "Certificate updated successfully", "blob_link": updated_certificate.blob_link}), 200
+            return jsonify({"message": "Certificate updated successfully", "blob_link": updated_certificate}), 200
         else:
             return jsonify({"error": "Failed to update certificate"}), 400
     except Exception as e:
