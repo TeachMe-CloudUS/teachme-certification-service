@@ -163,9 +163,10 @@ class DatabaseConnection:
             certificates = list(self.certificates_collection.find({
                 'student_id': student_id
             }))
-            
+
             if certificates:
                 return [{
+                    'id': str(cert.get('_id')),
                     'name': cert.get('name'),
                     'surname': cert.get('surname'),
                     'email': cert.get('email'),
