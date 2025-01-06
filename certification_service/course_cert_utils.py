@@ -19,27 +19,66 @@ from datetime import datetime
 def generate_certificate(student_course_data):
     """Generate and sign a PDF certificate for a student and a specific course."""
     logger.info("Starting creating certificate...")
-    # Create a PDF in memory
+
     pdf_buffer = io.BytesIO()
     c = canvas.Canvas(pdf_buffer, pagesize=letter)
     width, height = letter
 
-    # Add certificate content
-    c.setFont("Helvetica-Bold", 24)
+    c.setStrokeColorRGB(0, 0, 0)
+    c.setLineWidth(4)
+    c.rect(20, 20, width - 40, height - 40)
+
+    c.setFont("Helvetica-Bold", 36)
+    c.setFillColorRGB(0.2, 0.4, 0.8)  # Dark blue text
     c.drawCentredString(width / 2, height - 100, "Certificate of Completion")
+
+    c.setFont("Helvetica", 18)
+    c.setFillColorRGB(0, 0, 0)
+    c.drawCentredString(width / 2, height - 140, "Provided by Teachme")
+
+    c.setLineWidth(2)
+    c.line(100, height - 160, width - 100, height - 160)
+
+    c.setFont("Helvetica", 18)
+    c.setFillColorRGB(0, 0, 0)
+    c.drawCentredString(
+        width / 2,
+        height - 200,
+        f"This certifies that"
+    )
+
+    c.setFont("Helvetica-Bold", 24)
+    c.drawCentredString(
+        width / 2,
+        height - 240,
+        f"{student_course_data.student_name} {student_course_data.student_surname}"
+    )
+
+    c.setFont("Helvetica", 18)
+    c.drawCentredString(
+        width / 2,
+        height - 280,
+        f"has successfully completed the"
+    )
+
+    c.setFont("Helvetica-Bold", 20)
+    c.drawCentredString(
+        width / 2,
+        height - 320,
+        f"{student_course_data.course_level} course: {student_course_data.course_name}"
+    )
+
+    completion_date = datetime.fromisoformat(student_course_data.completionDate)
+    formatted_date = completion_date.strftime("%B %d, %Y")
+
     c.setFont("Helvetica", 16)
     c.drawCentredString(
         width / 2,
-        height - 250,
-        f"{student_course_data.student_name} "
-        f"{student_course_data.student_surname} "
-        f"successfully completed the {student_course_data.course_level} "
-        f"course {student_course_data.course_name} "
-        f"with full academic requirements on {student_course_data.completionDate}."
+        height - 360,
+        f"with full academic requirements on {formatted_date}."
     )
-    c.save()
 
-    # Rest of the function remains the same...
+    c.save()
 
     # Prepare the PDF for signing
     pdf_buffer.seek(0)
@@ -57,7 +96,6 @@ def generate_certificate(student_course_data):
     logger.info("Attempting to create signer from PFX file...")
     signer = signers.SimpleSigner.load_pkcs12(pfx_path, passphrase=config.PFX_PASSPHRASE.encode())
     
-
     # Define the QR stamp style
     qr_stamp_style = stamp.QRStampStyle(
         stamp_text='Signed by: %(signer)s\nTime: %(ts)s\nURL: %(url)s',
@@ -110,6 +148,7 @@ def update_certs(student_id):
 def get_all_certs(student_id):
     """Get all certificates for a student."""
     # Implement the logic to get all certificates
+    logger.info(f"Getting all certs for {student_id}")
     course_list = db_connection.get_all_course_certs(student_id)
     return course_list
 
