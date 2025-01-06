@@ -1,6 +1,6 @@
 import os
 import logging
-from azure.storage.blob import BlobServiceClient, ContainerClient
+from azure.storage.blob import BlobServiceClient, ContainerClient, PublicAccess, ContentSettings
 from azure.core.exceptions import ResourceExistsError
 from dotenv import load_dotenv
 
@@ -39,7 +39,7 @@ class BlobStorageService:
             logger.info("Getting Azure Blob Storage container client...")
             # Get container client
             self.container_client = self.blob_service_client.get_container_client(self.container_name)
-        
+
         except Exception as e:
             logger.error(f"Failed to initialize Azure Blob Storage: {e}")
             # Optionally, you can choose to re-raise the exception or handle it differently
@@ -50,7 +50,7 @@ class BlobStorageService:
         try:
             self.blob_service_client.create_container(
                 name=self.container_name, 
-                public_access='blob'
+                public_access=PublicAccess.Container
             )
             logger.info(f"Container '{self.container_name}' created successfully")
         except ResourceExistsError:
@@ -74,9 +74,27 @@ class BlobStorageService:
         try:
             blob_client = self.container_client.get_blob_client(blob_name)
             file_stream.seek(0)
-            blob_client.upload_blob(file_stream, overwrite=True)
+
+            content_settings = ContentSettings(
+                content_type='application/pdf',
+                content_disposition='inline'
+            )
+
+            blob_client.upload_blob(
+                file_stream,
+                overwrite=True,
+                content_settings=content_settings
+            )
+
+            blob_url = blob_client.url
+
             logger.info(f"File uploaded successfully to {blob_name}")
-            return blob_client.url
+
+            if os.getenv('FLASK_ENV') == "development":
+                blob_url = blob_url.replace("http://azurite:10000/", "http://localhost:11000/")
+                logger.info("Blob URL adjusted for Flask development environment")
+
+            return blob_url
         except Exception as e:
             logger.error(f"Error uploading file stream to {blob_name}: {e}")
             raise

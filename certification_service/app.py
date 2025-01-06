@@ -20,7 +20,6 @@ def create_app():
     swagger = Swagger(app)
     app.register_blueprint(certification_bp)
 
-
     # Start Kafka consumer
     def run_consumer():
         try:
@@ -44,9 +43,7 @@ def create_app():
     # Call the function to ensure the certificate, key, and PFX file exist
     ensure_certificate_and_key_exist()
 
-    app.register_blueprint(certification_bp)
     app.register_blueprint(monitoring_bp)
-
 
     return app
 
