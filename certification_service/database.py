@@ -106,7 +106,15 @@ class DatabaseConnection:
         """Store a certificate in MongoDB and return the stored document."""
         if not self._initialized:
             raise ValueError("Database connection not initialized")
-        
+            # Find existing certificate
+        existing_cert = self.certificates_collection.find_one({
+            "student_id": student_course_data.student_id,
+            "course_id": student_course_data.course_id
+        })
+        if existing_cert:
+            # If certificate exists, return the existing one
+            return existing_cert
+
         certificate_data = {
             'student_id': str(student_course_data.student_id),
             'name': student_course_data.student_name,
@@ -129,11 +137,6 @@ class DatabaseConnection:
                 return None
             
             return self.certificates_collection.find_one({'_id': result.inserted_id})
-        
-        except errors.DuplicateKeyError:
-            logger.error(f"Certificate already exists for student {student_course_data.student_id} " 
-            f"in course {student_course_data.course_id}")
-            return None
 
         except Exception as e:
             logger.error(f"Unexpected error storing certificate: {e}")
