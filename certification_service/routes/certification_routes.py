@@ -47,13 +47,13 @@ def route_certify():
             "Error": f"Certification failed: {str(e)}"
         }), 400
 
-@certification_bp.route('/api/v1/certificates/<int:student_id>', methods=['GET'])
+@certification_bp.route('/api/v1/certificates/<string:student_id>', methods=['GET'])
 def route_get_all_certificates(student_id):
     """Get all certificates for a student."""
     certificates = get_all_certs(student_id)
     return jsonify(certificates), 200
 
-@certification_bp.route('/api/v1/certificates/<int:student_id>/<int:course_id>', methods=['GET'])
+@certification_bp.route('/api/v1/certificates/<string:student_id>/<int:course_id>', methods=['GET'])
 def route_get_course_certificate(student_id, course_id):
     """Get certificate for a specific course and student."""
     certificate = get_cert(student_id, course_id)
@@ -61,7 +61,7 @@ def route_get_course_certificate(student_id, course_id):
         return jsonify(certificate), 200 
     return jsonify({"error": "Certificate not found"}), 404
 
-@certification_bp.route('/api/v1/certificates/<int:student_id>', methods=['DELETE'])
+@certification_bp.route('/api/v1/certificates/<string:student_id>', methods=['DELETE'])
 def route_delete_student_certificates(student_id):
     """Delete all certificates for a student."""
     try:
@@ -72,7 +72,7 @@ def route_delete_student_certificates(student_id):
         return jsonify({"error": f"Failed to delete certificates for"
                         f"student ID {student_id}: {str(e)}"}), 500
 
-@certification_bp.route('/api/v1/certificates/<int:student_id>/<int:course_id>', methods=['DELETE'])
+@certification_bp.route('/api/v1/certificates/<string:student_id>/<int:course_id>', methods=['DELETE'])
 def route_delete_certificate(student_id, course_id):
     """Delete a specific certificate for a student."""
     try:

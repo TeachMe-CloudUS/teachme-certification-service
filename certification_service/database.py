@@ -161,11 +161,22 @@ class DatabaseConnection:
         try:
             # Find all certificates for the given student_id
             certificates = list(self.certificates_collection.find({
-                'id': student_id
+                'student_id': student_id
             }))
             
             if certificates:
-                return [cert['blob_link'] for cert in certificates]
+                return [{
+                    'name': cert.get('name'),
+                    'surname': cert.get('surname'),
+                    'email': cert.get('email'),
+                    'courseId': cert.get('course_id'),
+                    'courseName': cert.get('course_name'),
+                    'courseDescription': cert.get('course_description'),
+                    'courseDuration': cert.get('course_duration'),
+                    'courseLevel': cert.get('course_level'),
+                    'completionDate': cert.get('completionDate'),
+                    'blobLink': cert.get('blob_link')
+                } for cert in certificates]
             else:
                 # Log that no certificates were found
                 logger.warning(f"No blob links to certificates found for student {student_id}")
@@ -175,7 +186,6 @@ class DatabaseConnection:
             # Log any database errors
             logger.error(f"Error retrieving blob links to certificates for student {student_id}: {str(e)}")
             raise
-
 
     def delete_certificate(self, student_id, course_id):
         """Delete a certificate for a specific student and course from MongoDB."""
