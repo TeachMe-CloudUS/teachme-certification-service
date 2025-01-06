@@ -6,8 +6,6 @@ from pymongo.errors import ConnectionFailure, OperationFailure
 from certification_service.logger import logger
 from datetime import datetime
 
-logger = logging.getLogger(__name__)
-
 class DatabaseConnection:
     def __init__(self, max_retries: int = 5, retry_delay: int = 5):
         self.max_retries = max_retries
