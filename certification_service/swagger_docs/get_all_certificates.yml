@@ -1,24 +1,21 @@
----
-swagger: '2.0'
+swagger: "2.0"
 info:
-  title: "Get All Certificates API"
   description: "Retrieve all certificates for a student."
   version: "1.0.0"
+  title: "Get All Student Certificates API"
 paths:
   /api/v1/certificates/{student_id}:
     get:
-      tags:
-        - "Certification"
-      summary: "Get all certificates for a student"
-      description: "Retrieve all certificates for a student."
+      summary: "Get all certificates"
+      description: "Fetch all certificates for a given student ID."
       parameters:
         - name: "student_id"
           in: "path"
           required: true
-          type: "integer"
-          format: "int64"
+          type: "string"
+          description: "ID of the student"
       responses:
         200:
-          description: "Certificates retrieved successfully"
+          description: "A list of certificates"
         404:
-          description: "No certificates found or student not found"
+          description: "No certificates found"

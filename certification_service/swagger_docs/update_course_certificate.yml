@@ -1,0 +1,36 @@
+swagger: "2.0"
+info:
+  description: "Update a certificate by deleting the old one and setting a new student name."
+  version: "1.0.0"
+  title: "Update Course Certificate API"
+paths:
+  /api/v1/certificates/{student_id}/{course_id}:
+    put:
+      summary: "Update and rename a certificate"
+      description: "Delete the existing certificate and create a new one with a new student name."
+      parameters:
+        - name: "student_id"
+          in: "path"
+          required: true
+          type: "string"
+        - name: "course_id"
+          in: "path"
+          required: true
+          type: "string"
+        - in: "body"
+          name: "body"
+          description: "New student name"
+          required: true
+          schema:
+            type: "object"
+            properties:
+              new_student_name:
+                type: "string"
+                description: "The new name of the student"
+      responses:
+        200:
+          description: "Certificate updated successfully"
+        400:
+          description: "Invalid data or new student name missing"
+        404:
+          description: "Certificate not found"

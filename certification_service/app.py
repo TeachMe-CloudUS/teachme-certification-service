@@ -18,7 +18,13 @@ from flasgger import Swagger
 def create_app():
     # Initialize Flask app
     app = Flask(__name__)
-    swagger = Swagger(app)
+    swagger = Swagger(app, template={
+    "info": {
+        "title": "API of Teachme Certification Service",
+        "description": "API Documentation for Teachme Certification Service",
+        "version": "1.0.0"
+    }
+})
     app.register_blueprint(certification_bp)
 
     # Start Kafka consumer

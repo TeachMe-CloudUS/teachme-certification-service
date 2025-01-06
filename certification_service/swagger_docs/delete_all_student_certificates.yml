@@ -1,26 +1,20 @@
----
-swagger: '2.0'
+swagger: "2.0"
 info:
-  title: "Delete All Student Certificates API"
   description: "Delete all certificates for a student."
   version: "1.0.0"
+  title: "Delete All Student Certificates API"
 paths:
   /api/v1/certificates/{student_id}:
     delete:
-      tags:
-        - "Certification"
-      summary: "Delete all certificates for a student"
-      description: "Delete all certificates for a student."
+      summary: "Delete all certificates"
+      description: "Remove all certificates for the specified student."
       parameters:
         - name: "student_id"
           in: "path"
           required: true
-          type: "integer"
-          format: "int64"
+          type: "string"
       responses:
         200:
           description: "Certificates deleted successfully"
         404:
-          description: "No certificates found or student not found"
-        500:
-          description: "Internal server error"
+          description: "No certificates found"

@@ -1,31 +1,24 @@
----
-swagger: '2.0'
+swagger: "2.0"
 info:
-  title: "Delete Course Certificate API"
-  description: "Delete a specific certificate for a student and course."
+  description: "Delete a specific certificate for a student."
   version: "1.0.0"
+  title: "Delete Course Certificate API"
 paths:
   /api/v1/certificates/{student_id}/{course_id}:
     delete:
-      tags:
-        - "Certification"
-      summary: "Delete a specific certificate"
-      description: "Delete a specific certificate for a student and course."
+      summary: "Delete a certificate"
+      description: "Delete a specific certificate for the given course and student."
       parameters:
         - name: "student_id"
           in: "path"
           required: true
-          type: "integer"
-          format: "int64"
+          type: "string"
         - name: "course_id"
           in: "path"
           required: true
-          type: "integer"
-          format: "int64"
+          type: "string"
       responses:
         200:
           description: "Certificate deleted successfully"
-        404:
-          description: "Certificate not found or student not found"
-        500:
-          description: "Internal server error"
+        400:
+          description: "Deletion failed"

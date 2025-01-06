@@ -141,3 +141,18 @@ def test_delete_student_certificates_noContent():
     assert response.status_code == 400
     assert "message" in response.json()
     
+# Test for PUT /certificates/{student_id}/{course_id}
+def test_update_certificate_valid():
+    response = requests.put(f"{BASE_URL}/certificates/{VALID_STUDENT_ID}/{VALID_COURSE_ID}", json=BASE_PAYLOAD)
+    assert response.status_code == 200
+    assert "Updated" in response.json()["message"]
+
+def test_update_certificate_invalidStudent():
+    response = requests.put(f"{BASE_URL}/certificates/{INVALID_STUDENT_ID}/{VALID_COURSE_ID}", json=BASE_PAYLOAD)
+    assert response.status_code == 400
+    assert "message" in response.json()
+
+def test_update_certificate_invalidCourse():
+    response = requests.put(f"{BASE_URL}/certificates/{VALID_STUDENT_ID}/{INVALID_COURSE_ID}", json=BASE_PAYLOAD)
+    assert response.status_code == 400
+    assert "message" in response.json()

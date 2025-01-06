@@ -1,29 +1,24 @@
----
-swagger: '2.0'
+swagger: "2.0"
 info:
-  title: "Get Course Certificate API"
-  description: "Retrieve a specific certificate for a student and course."
+  description: "Get a certificate for a specific course and student."
   version: "1.0.0"
+  title: "Get Course Certificate API"
 paths:
   /api/v1/certificates/{student_id}/{course_id}:
     get:
-      tags:
-        - "Certification"
       summary: "Get a specific certificate"
-      description: "Retrieve a specific certificate for a student and course."
+      description: "Retrieve a certificate for a specific course and student."
       parameters:
         - name: "student_id"
           in: "path"
           required: true
-          type: "integer"
-          format: "int64"
+          type: "string"
         - name: "course_id"
           in: "path"
           required: true
-          type: "integer"
-          format: "int64"
+          type: "string"
       responses:
         200:
-          description: "Certificate retrieved successfully"
+          description: "Certificate details"
         404:
           description: "Certificate not found"
