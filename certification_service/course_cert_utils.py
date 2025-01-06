@@ -143,8 +143,8 @@ def update_cert(student_id, course_id, new_student_surname):
     """Update certificates for a student and return list of updated certificates."""
     try:
         # Check if the certificate exists
-        existing_student_course = get_cert(student_id, course_id)
-        if not existing_student_course:
+        blob_url = get_cert(student_id, course_id)
+        if not blob_url:
             return None
 
         # Delete the existing certificate
@@ -152,14 +152,14 @@ def update_cert(student_id, course_id, new_student_surname):
         if not delete_success:
             return None
 
-        # Create a new certificate with the new student name
-        updated_student_course = existing_student_course
+        # Certify the updated student
+        updated_student_course = db.connection.get_student_course_data(student_id, course_id)
         updated_student_course.student_surname = new_student_surname
-        blob_link = certify_student(updated_student_course)
-        if not certify_success:
+        new_blob_link = certify_student(updated_student_course)
+        if not new_blob_link:
             return None
         else:
-            return blob_link
+            return new_blob_link
 
     except Exception as e:
         logger.error(f"Error updating student certificate for student_id {student_id} and course_id {course_id}: {str(e)}")

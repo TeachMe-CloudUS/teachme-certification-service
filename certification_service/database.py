@@ -247,5 +247,21 @@ class DatabaseConnection:
             logger.error(traceback.format_exc())
             raise
 
+def get_student_course_data(student_id, course_id):
+    """Get one entry from the database."""
+    try:
+        student_course_data = self.certificates_collection.find_one({
+                "student_id": student_course_data.student_id,
+                "course_id": student_course_data.course_id
+            })
+    except Exception as e:
+        logger.error(f"Database error while retrieving student_course_data"
+        f" for student_id {student_id} and course_id {course_id}: {str(e)}")
+        return None
+    if not student_course_data:
+        logger.error(f"Failed to get student_course_data for student_id {student_id} and course_id {course_id}")
+        return None
+    return student_course_data
+
 # Create a global instance
 db_connection = DatabaseConnection()
