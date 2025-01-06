@@ -6,12 +6,8 @@ services:
     container_name: certification_service
     environment:
       - MONGO_DATABASE=certificate_db
-      - MONGO_PORT=27017
-      - MONGO_HOST=teachme-certification-c.oh7xd.mongodb.net
       - MONGO_COLLECTION_NAME=student_certificates
-      - MONGO_USERNAME=certification_service
-      - MONGO_PASSWORD=userpassword123
-      - MONGODB_URI_USER=mongodb://certification_service:userpassword123@mongodb:27017/certificate_db
+      - MONGODB_URI_USER=mongodb://user:pass@certification_mongodb:27017/certificate_db?authSource=admin
       - AZURE_STORAGE_ACCOUNT_NAME=devstoreaccount1
       - AZURE_STORAGE_ACCOUNT_KEY=Eby8vdM02xNOcqFlqUwJPLlmEtlCDXJ1OUzFT50uSRZ6IFsuFq2UVErCz4I6tq/K1SZFPTOtr/KBHBeksoGMGw==
       - BLOB_STORAGE_CONTAINER_NAME=certificates
@@ -20,8 +16,8 @@ services:
       - PFX_PASSPHRASE=mysecurepassphrase
       - SIGNATURE_FIELD_NAME=Signature1
       - SIGNATURE_BOX=150,30,450,90
+      - KAFKA_BOOTSTRAP_SERVER=kafka:9092
       - QR_CODE_URL=https://www.youtube.com/watch?v=dQw4w9WgXcQ
-      - MONGODB_URI_ADMIN=mongodb://admin:rootpassword123@mongodb:27017/certificate_db?authSource=admin
     ports:
       - "8080:8080"
     volumes:
@@ -45,18 +41,12 @@ services:
     image: mongo:latest
     container_name: certification_mongodb
     environment:
-      - MONGO_INITDB_ROOT_USERNAME=admin
-      - MONGO_INITDB_ROOT_PASSWORD=rootpassword123
-      - MONGO_INITDB_DATABASE=certificate_db
-      - MONGO_COLLECTION_NAME=student_certificates
-      - MONGO_USERNAME=certification_service
-      - MONGO_PASSWORD=userpassword123
-      - MONGO_DATABASE=certificate_db
+    - MONGO_INITDB_ROOT_USERNAME=user
+    - MONGO_INITDB_ROOT_PASSWORD=pass
     ports:
-      - "27017:27017"
+      - "27026:27017"
     volumes:
-      - mongodb_data:/data/db
-      - ./mongodb/mongod.conf:/etc/mongod.conf
+      - ./services/teachme-certification-service/mongodb/mongod.conf:/etc/mongo/mongod.conf
     healthcheck:
       test: mongosh --quiet --eval "db.adminCommand('ping')"
       interval: 10s
@@ -65,6 +55,7 @@ services:
       start_period: 30s
     networks:
       - certification-service-network
+  
 
   zookeeper:
     image: confluentinc/cp-zookeeper:latest
@@ -131,22 +122,13 @@ services:
       - mongodb
     environment:
       - MONGO_DATABASE=certificate_db
-      - MONGO_PORT=27017
-      - MONGO_HOST=mongodb
       - MONGO_COLLECTION_NAME=student_certificates
-      - MONGO_USERNAME=certification-service
-      - MONGO_PASSWORD=userpassword123
+      - MONGODB_URI_USER=mongodb://user:pass@certification_mongodb:27017/certificate_db?authSource=admin
       - AZURE_STORAGE_ACCOUNT_NAME=devstoreaccount1
       - AZURE_STORAGE_ACCOUNT_KEY=Eby8vdM02xNOcqFlqUwJPLlmEtlCDXJ1OUzFT50uSRZ6IFsuFq2UVErCz4I6tq/K1SZFPTOtr/KBHBeksoGMGw==
       - BLOB_STORAGE_CONTAINER_NAME=certificates
       - BLOB_STORAGE_CONNECTION_STRING=DefaultEndpointsProtocol=http;AccountName=devstoreaccount1;AccountKey=Eby8vdM02xNOcqFlqUwJPLlmEtlCDXJ1OUzFT50uSRZ6IFsuFq2UVErCz4I6tq/K1SZFPTOtr/KBHBeksoGMGw==;BlobEndpoint=http://azurite:10000/devstoreaccount1;
-      - CERTIFICATES_DIR=/app/certificates
-      - PFX_PASSPHRASE=mysecurepassphrase
-      - SIGNATURE_FIELD_NAME=Signature1
-      - SIGNATURE_BOX=150,30,450,90
-      - QR_CODE_URL=https://www.youtube.com/watch?v=dQw4w9WgXcQ
-      - MONGODB_URI_ADMIN=mongodb://admin:rootpassword123@mongodb:27017/certificate_db?authSource=admin
-      - MONGODB_URI_USER=mongodb://certification_service:userpassword123@mongodb:27017/certificate_db
+      - KAFKA_BOOTSTRAP_SERVER=kafka:9092
     volumes:
       - ./certification_service:/app/certification_service
       - ./tests:/app/tests

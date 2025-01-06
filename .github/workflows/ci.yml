@@ -56,7 +56,7 @@ jobs:
       if: failure()
       run: docker compose logs mongodb
       
-    - name: Run Integration Tests
+    - name: Run Database Integration Tests
       run: |
         docker compose run --rm test_runner pytest tests/integration/test_database.py
     
