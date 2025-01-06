@@ -29,8 +29,6 @@ class DatabaseConnection:
         if not mongodb_uri:
             raise ValueError("Missing required mongodb URI environment variable")
         else:
-            logger.info(f"Using MongoDB URI: {mongodb_uri}")
-
         while retry_count < self.max_retries:
             try:
                 if self.client is None:
@@ -164,7 +162,7 @@ class DatabaseConnection:
                 'student_id': student_id
             }))
 
-            if certificates:
+            If certificates:
                 return [{
                     'id': str(cert.get('_id')),
                     'name': cert.get('name'),
