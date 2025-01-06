@@ -1,0 +1,29 @@
+---
+swagger: '2.0'
+info:
+  title: "Certify Student API"
+  description: "API to certify a student by generating a PDF certificate."
+  version: "1.0.0"
+paths:
+  /api/v1/certify/{student_id}/{course_id}:
+    post:
+      tags:
+        - "Certification"
+      summary: "Certify a student"
+      description: "Certify a student by generating a PDF certificate."
+      parameters:
+        - name: "student_id"
+          in: "path"
+          required: true
+          type: "integer"
+          format: "int64"
+        - name: "course_id"
+          in: "path"
+          required: true
+          type: "integer"
+          format: "int64"
+      responses:
+        201:
+          description: "Certificate generated successfully"
+        400:
+          description: "Failed to generate certificate"
