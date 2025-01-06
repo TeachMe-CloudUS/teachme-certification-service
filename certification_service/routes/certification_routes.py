@@ -75,16 +75,17 @@ def route_delete_all_student_certificates(student_id):
         return jsonify({"error": f"Failed to delete certificates for student ID {student_id}: {str(e)}"}), 500
 
 
-@certification_bp.route('/api/v1/certificates/<string:student_id>/<string:course_id>', methods=['DELETE'])
+@certification_bp.route('/api/v1/certificate/<string:student_id>/<string:course_id>', methods=['DELETE'])
 @swag_from('swagger_docs/delete_course_certificate.yml')
 def route_delete_course_certificate(student_id, course_id):
     """Delete a specific certificate for a student."""
     try:
         deleted = delete_cert(student_id, course_id)
         if deleted:
-            return jsonify("Certificate deleted successfully"), 200
+            return jsonify({"message": f"Certificate deleted successfully for "
+            f"student_id {student_id} and course_id {course_id}."}), 200
         return jsonify({"error": f"Failed to delete certificate for"
-         f"student_id {student_id} and course_id {course_id}"}), 400
+         f"student_id {student_id} and course_id {course_id}"}), 404
 
     except Exception as e:
         return jsonify({"error": f"Failed to delete certificate for student ID {student_id} "
