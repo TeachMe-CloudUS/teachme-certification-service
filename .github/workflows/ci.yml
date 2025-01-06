@@ -56,10 +56,14 @@ jobs:
       if: failure()
       run: docker compose logs mongodb
       
-    - name: Run tests with test_runner
+    - name: Run Integration Tests
       run: |
-        docker compose run --rm test_runner
-      
+        docker compose run --rm test_runner pytest tests/integration/test_database.py
+    
+    - name: Run API Tests
+      run: |
+        docker compose run --rm test_runner pytest tests/test_api.py
+
     - name: Lint with pylint
       run: |
         pylint certification_service > pylint_report.txt || true
