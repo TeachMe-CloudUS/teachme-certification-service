@@ -72,17 +72,35 @@ def test_store_certificate(clean_database):
     assert stored_cert['blob_link'] == blob_url
 
 def test_duplicate_certificate_prevention(clean_database):
-    """Test that duplicate certificates are prevented."""
+    """Test that duplicate certificates are prevented and existing certificates are retrieved."""
     student_course_data = create_test_student_course_data()
-    blob_url = 'https://example.com/test-certificate.pdf'
+    blob_url = 'https://example.com/first_test-certificate.pdf'
     
     # First certificate storage should succeed
     first_cert = clean_database.store_certificate(student_course_data, blob_url)
     assert first_cert is not None, "First certificate storage failed"
     
-    # Second certificate with same student and course should return None
+    # Second certificate with same student and course should return the existing certificate
     second_cert = clean_database.store_certificate(student_course_data, blob_url)
-    assert second_cert is None, "Second certificate storage should return None for duplicate"
+    assert second_cert is not None, "Second certificate retrieval failed"
+    
+    # Verify that the certificates are the same
+    assert first_cert['blob_link'] == second_cert['blob_link'], "Retrieved certificate does not match original"
+    
+    # Try to insert a certificate with the same student_id and course_id but different blob_url
+    second_blob_url = 'https://example.com/second_test-certificate.pdf'
+    third_cert = clean_database.store_certificate(student_course_data, second_blob_url)
+    
+    # This should still return the original certificate
+    assert third_cert['blob_link'] == first_cert['blob_link'], "If an certificate exists already for this course and student "
+    f"it is returned even if the blob link of the inserted certificate is different from the existing one"
+    
+    # Verify only one certificate exists in the database
+    certificate_count = clean_database.certificates_collection.count_documents({
+        'student_id': student_course_data.student_id,
+        'course_id': student_course_data.course_id
+    })
+    assert certificate_count == 1, "Multiple certificates created for same student and course"
 
 def test_mongodb_connection_and_collection(clean_database):
     """Comprehensive test of MongoDB connection and collection."""

@@ -35,7 +35,6 @@ class DatabaseConnection:
                     logger.info("Attempting to connect to MongoDB...")
                     self.client = MongoClient(mongodb_uri)
                 
-                
                 # Set up database and collection
                 database = os.getenv('MONGO_DATABASE')
                 collection_name = os.getenv('MONGO_COLLECTION_NAME')
@@ -45,13 +44,20 @@ class DatabaseConnection:
                 else:
                     self.db = self.client[database]
 
-
                 if self.db is None:
                     logger.error(f"Database '{database}' not found")
                     raise ValueError(f"Database '{database}' not found")
                 else:
                     logger.info(f"Using database: {database}")
                     self.certificates_collection = self.db[collection_name]
+                    # Make sure that the combination of student_id and course_id is unique
+                    self.certificates_collection.create_index(
+                        [("student_id", 1), ("course_id", 1)],
+                        unique=True,
+                        partialFilterExpression={
+                            "student_id": {"$type": "string"},
+                            "course_id": {"$type": "string"}
+                    })
                     self._initialized = True
                 
                 logger.info("Successfully connected to MongoDB")
@@ -100,7 +106,15 @@ class DatabaseConnection:
         """Store a certificate in MongoDB and return the stored document."""
         if not self._initialized:
             raise ValueError("Database connection not initialized")
-        
+            # Find existing certificate
+        existing_cert = self.certificates_collection.find_one({
+            "student_id": student_course_data.student_id,
+            "course_id": student_course_data.course_id
+        })
+        if existing_cert:
+            # If certificate exists, return the existing one
+            return existing_cert
+
         certificate_data = {
             'student_id': str(student_course_data.student_id),
             'name': student_course_data.student_name,
@@ -123,11 +137,6 @@ class DatabaseConnection:
                 return None
             
             return self.certificates_collection.find_one({'_id': result.inserted_id})
-        
-        except errors.DuplicateKeyError:
-            logger.error(f"Certificate already exists for student {student_course_data.student_id} " 
-            f"in course {student_course_data.course_id}")
-            return None
 
         except Exception as e:
             logger.error(f"Unexpected error storing certificate: {e}")
