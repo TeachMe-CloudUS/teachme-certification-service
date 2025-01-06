@@ -18,12 +18,28 @@ from flasgger import Swagger
 def create_app():
     # Initialize Flask app
     app = Flask(__name__)
-    swagger = Swagger(app, template={
+    swagger_config = {
+        "headers": [
+        ],
+        "specs": [
+            {
+                "endpoint": 'apispec_1',
+                "route": '/swagger/certification-service/api-docs',
+                "rule_filter": lambda rule: True,  # all in
+                "model_filter": lambda tag: True,  # all in
+            }
+        ],
+        "static_url_path": "/flasgger_static",
+        # "static_folder": "static",  # must be set by user
+        "swagger_ui": True,
+        "specs_route": "/apidocs/"
+    }
+    swagger = Swagger(app, config=swagger_config, template={
     "info": {
         "title": "API of Teachme Certification Service",
         "description": "API Documentation for Teachme Certification Service",
         "version": "1.0.0"
-    }
+    },
 })
     app.register_blueprint(certification_bp)
 
