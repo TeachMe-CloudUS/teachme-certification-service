@@ -30,6 +30,7 @@ dependencies = [
     "reportlab==4.2.5",
     "python-dotenv==1.0.0",
     "pymongo",
+    "flasgger",
     "confluent-kafka",
     "azure-storage-blob",
     "azure-identity",

@@ -12,6 +12,7 @@ from certification_service.cert_management import ensure_certificate_and_key_exi
 from certification_service.database import db_connection
 from certification_service.kafka.consumer import start_consumer
 from certification_service.routes.certification_routes import certification_bp
+from flasgger import Swagger
 
 # Register the Blueprint
 def create_app():
@@ -19,7 +20,6 @@ def create_app():
     app = Flask(__name__)
     swagger = Swagger(app)
     app.register_blueprint(certification_bp)
-
 
     # Start Kafka consumer
     def run_consumer():
@@ -44,9 +44,7 @@ def create_app():
     # Call the function to ensure the certificate, key, and PFX file exist
     ensure_certificate_and_key_exist()
 
-    app.register_blueprint(certification_bp)
     app.register_blueprint(monitoring_bp)
-
 
     return app
 

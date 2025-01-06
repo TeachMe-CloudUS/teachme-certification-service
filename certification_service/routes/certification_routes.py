@@ -3,7 +3,6 @@ from flask import Blueprint, jsonify, request
 from certification_service.course_cert_utils import (certify_student, get_all_certs, get_cert, delete_all_certs)
 from certification_service.models.student_course_data import Student_Course_Data
 from certification_service.database import db_connection
-from flasgger import swag_from
 
 certification_bp = Blueprint('certification', __name__)
 
