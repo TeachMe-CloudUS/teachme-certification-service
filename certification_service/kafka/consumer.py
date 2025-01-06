@@ -1,4 +1,4 @@
-from confluent_kafka import Consumer, KafkaError, Producer
+from confluent_kafka import Consumer, KafkaError, Producer, KafkaException
 import json
 import signal
 import threading

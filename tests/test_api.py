@@ -109,7 +109,7 @@ def test_get_course_certificate_invalid_course():
 def test_get_course_certificate_no_content():
     response = requests.get(f"{BASE_URL}/certificates/{9999}/{9999}")
     assert response.status_code == 404
-    assert not response.text.strip()
+    assert response.json()["error"] == "Certificate not found"
 
 
 # Test for DELETE all certificates for a student
