@@ -142,23 +142,27 @@ def certify_student(student_course_data: Student_Course_Data = None):
 def update_cert(student_id, course_id, new_student_surname):
     """Update certificates for a student and return list of updated certificates."""
     try:
-        # Check if the certificate exists
-        existing_student_course = get_cert(student_id, course_id)
-        if not existing_student_course:
+        student_course_data = db_connection.get_student_course_data(student_id, course_id)
+        if not student_course_data:
+            logger.error(f"Could not update Certificate since Certificate does not exist for "
+            f"student_id {student_id} and course_id {course_id} does not exist")
             return None
 
         # Delete the existing certificate
         delete_success = delete_cert(student_id, course_id)
         if not delete_success:
+            logger.error(f"Could not update Certificate since deleting failed "
+            f"for student_id {student_id} and course_id {course_id}")
             return None
 
-        # Create a new certificate with the new student name
-        updated_student_course = Student_Course_Data()
-        blob_link = certify_student(updated_student_course)
-        if not certify_success:
+        student_course_data.student_surname = new_student_surname
+        new_blob_link = certify_student(student_course_data)
+        if not new_blob_link:
+            logger.error(f"Could not update Certificate, deleted old certificate, but could not create new one"
+            f" for student_id {student_id} and course_id {course_id}")
             return None
         else:
-            return blob_link
+            return new_blob_link
 
     except Exception as e:
         logger.error(f"Error updating student certificate for student_id {student_id} and course_id {course_id}: {str(e)}")
