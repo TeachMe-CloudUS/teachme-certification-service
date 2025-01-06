@@ -153,8 +153,7 @@ def update_cert(student_id, course_id, new_student_surname):
             return None
 
         # Create a new certificate with the new student name
-        updated_student_course = existing_student_course
-        updated_student_course.student_surname = new_student_surname
+        updated_student_course = Student_Course_Data()
         blob_link = certify_student(updated_student_course)
         if not certify_success:
             return None
