@@ -5,8 +5,10 @@ parameters:
     required: true
     schema:
       $ref: '#/definitions/Student_Course_Data'
+
 tags:
-  - Certificate Operations
+  - name: Certificate Operations
+
 definitions:
   Student_Course_Data:
     type: object

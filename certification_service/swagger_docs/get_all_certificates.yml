@@ -5,7 +5,7 @@ parameters:
     required: true
     type: string
     description: "The unique identifier for the student whose certificates should be retrieved."
-    example: "stud1234"
+    example: "stu1234"
 
 tags:
   - name: Certificate Operations
