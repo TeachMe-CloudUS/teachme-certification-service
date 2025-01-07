@@ -1,18 +1,16 @@
 parameters:
-  - name: data
-    in: body
+  - name: student_id
+    in: path
     required: true
-    schema:
-      type: object
-      properties:
-        student_userId:
-          type: string
-          description: The unique identifier of the student for whom the certificate is being updated.
-          example: "student123"
-        course_id:
-          type: string
-          description: The unique identifier of the course for which the certificate is being updated.
-          example: "course101"
+    type: string
+    description: "The unique identifier for the student whose certificate should be updated."
+    example: "stu12345"
+  - name: course_id
+    in: path
+    required: true
+    type: string
+    description: "The unique identifier for the course whose certificate should be to be updated."
+    example: "course101"
 tags:
   - name: Certificate Operations
 

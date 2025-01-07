@@ -1,22 +1,18 @@
 ---
 parameters:
-  - name: data
-    in: body
+  - name: student_id
+    in: path
     required: true
-    schema:
-      type: object
-      properties:
-        student_userId:
-          type: string
-          description:  The unique identifier of the student whose certificates are to be retrieved.
-          example: "stu12345"
+    type: string
+    description: "The unique identifier for the student whose certificates should be retrieved."
+    example: "stud1234"
 
 tags:
   - name: Certificate Operations
 
 responses:
   200:
-    description: Successfull operation. Returns a list of certificates for the student.
+    description: Successfull operation. 
     schema:
       type: array
       items:
@@ -68,6 +64,6 @@ responses:
             description: The URL where the certificate PDF can be accessed.
             example: "http://localhost:11000/devstoreaccount1/certificates/cert12345.pdf"
   404:
-    description: No certificates found for the specified student ID.
+    description: No certificates found for the specified student.
   500:
-    description: Internal server error.
+    description: Failed to retrieve certificates for the specified student. An internal server error occurred while retrieving the certificates.

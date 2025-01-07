@@ -1,27 +1,24 @@
 ---
----
 parameters:
-  - name: data
-    in: body
+  - name: student_id
+    in: path
     required: true
-    schema:
-      type: object
-      properties:
-        student_userId:
-          type: string
-          description:  The unique identifier of the student for whom the certificate is deleted.
-          example: "stu12345"
-        course_id:
-          type: string
-          description: The unique identifier of the course for which the certificate is deleted. 
-          example: "course101"
+    type: string
+    description: "The unique identifier for the student whose certificate needs to be deleted."
+    example: "stu12345"
+  - name: course_id
+    in: path
+    required: true
+    type: string
+    description: "The unique identifier for the course whose certificate needs to be deleted."
+    example: "course101"
 
 tags:
   - name: Certificate Operations
 
 responses:
   200:
-    description: Certificate deleted successfully for student_id <student_id> and course_id <course_id>
+    description: Certificate deleted successfully for the specified student and course.
     schema:
       type: object
       properties:
@@ -29,6 +26,6 @@ responses:
           type: string
           example: "Certificate deleted successfully for student_id stu12345 and course_id course101"
   404:
-    description: Failed to delete certificate for student_id and course_id. 
+    description: Failed to delete certificate for specified student and course.
   500:
-    description: Failed to delete certificate for student ID and course ID with error message.
+    description: Failed to delete certificate for specified student and course.

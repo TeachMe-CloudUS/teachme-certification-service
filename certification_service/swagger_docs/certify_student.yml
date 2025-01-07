@@ -1,3 +1,4 @@
+---
 parameters:
   - name: data
     in: body
@@ -5,8 +6,7 @@ parameters:
     schema:
       $ref: '#/definitions/Student_Course_Data'
 tags:
-  - name: Certificate Operations
-
+  - Certificate Operations
 definitions:
   Student_Course_Data:
     type: object

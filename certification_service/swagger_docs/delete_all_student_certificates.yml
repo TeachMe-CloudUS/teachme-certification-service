@@ -1,27 +1,19 @@
 parameters:
-  - name: data
-    in: body
+  - name: student_id
+    in: path
     required: true
-    schema:
-      type: object
-      properties:
-        student_userId:
-          type: string
-          description: The unique identifier of the student for whom the certificate is being deleted.
-          example: "student123"
-      error:
-        type: string
-        description: An error message if something goes wrong.
-        example: "Failed to delete certificates for student ID student123: error_message"
+    type: string
+    description: "The unique identifier for the student whose certificates should be deleted."
+    example: "stud1234"
 
 tags:
   - name: Certificate Operations
 
 responses:
   200:
-    description: Successfully deleted the <count> certificates for student_id.
+    description: Successfully deleted the all certificates for the specified student.
   404:
-    description: No certificates found for the specified student_id.
+    description: No certificates found for the specified student.
   500:
-    description: Failed to delete certificates for student ID student123 - internal error
+    description: Failed to delete certificates for the specified student. An internal server error occurred.
 
