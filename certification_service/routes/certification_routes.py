@@ -3,6 +3,7 @@ from flask import Blueprint, jsonify, request
 from certification_service.course_cert_utils import (certify_student, get_all_certs, get_cert, delete_all_certs, update_cert, delete_cert)
 from certification_service.models.student_course_data import Student_Course_Data
 from certification_service.database import db_connection
+from certification_service.logger import logger
 from flasgger import swag_from
 
 certification_bp = Blueprint('certification', __name__)
@@ -84,7 +85,7 @@ def route_delete_course_certificate(student_id, course_id):
         if deleted:
             return jsonify({"message": f"Certificate deleted successfully for "
             f"student_id {student_id} and course_id {course_id}."}), 200
-        return jsonify({"error": f"Failed to delete certificate for"
+        return jsonify({"message": f"Failed to delete certificate for "
          f"student_id {student_id} and course_id {course_id}"}), 404
 
     except Exception as e:
@@ -97,6 +98,7 @@ def route_delete_course_certificate(student_id, course_id):
 def route_update_course_certificate(student_id, course_id):
     """Update a certificate by deleting the old one and setting a new student name."""
     try:
+        logger.info(f"request.json: {request.json}")
         new_student_name = request.json.get('student_surname')
         logger.info(f"Attempting to update certificate with new surname: {new_student_name}")
         updated_certificate = update_cert(student_id, course_id, new_student_name)

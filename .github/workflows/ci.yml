@@ -51,10 +51,6 @@ jobs:
           echo "Waiting for MongoDB to initialize... Retry #$retries"
           sleep 2
         done
-
-    - name: Check MongoDB logs on failure
-      if: failure()
-      run: docker compose logs mongodb
       
     - name: Run Database Integration Tests
       run: |
