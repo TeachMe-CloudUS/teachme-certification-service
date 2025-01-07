@@ -1,24 +1,55 @@
-swagger: "2.0"
-info:
-  description: "Get a certificate for a specific course and student."
-  version: "1.0.0"
-  title: "Get Course Certificate API"
-paths:
-  /api/v1/certificates/{student_id}/{course_id}:
-    get:
-      summary: "Get a specific certificate"
-      description: "Retrieve a certificate for a specific course and student."
-      parameters:
-        - name: "student_id"
-          in: "path"
-          required: true
-          type: "string"
-        - name: "course_id"
-          in: "path"
-          required: true
-          type: "string"
-      responses:
-        200:
-          description: "Certificate details"
-        404:
-          description: "Certificate not found"
+---
+parameters:
+  - name: student_id
+    in: path
+    type: string
+    required: true
+  - name: course_id
+    in: path
+    type: string
+    required: true
+definitions:
+  Certificate:
+    type: object
+    properties:
+      certificate_id:
+        type: string
+      student_id:
+        type: string
+      course_id:
+        type: string
+      course_name:
+        type: string
+      issue_date:
+        type: string
+        format: date
+  Response:
+    type: object
+    properties:
+      error:
+        type: string
+        description: Error message when the certificate is not found.
+        example: "Certificate not found"
+      certificate:
+        $ref: '#/definitions/Certificate'
+responses:
+  200:
+    description: A certificate for the specified student and course.
+    schema:
+      type: object
+      properties:
+        certificate:
+          $ref: '#/definitions/Certificate'
+    examples:
+      certificate:
+        certificate_id: "cert123"
+        student_id: "student123"
+        course_id: "course123"
+        course_name: "Course Name"
+        issue_date: "2023-12-31"
+  404:
+    description: Certificate not found for the specified student and course.
+    schema:
+      $ref: '#/definitions/Response'
+    examples:
+      error: "Certificate not found"
