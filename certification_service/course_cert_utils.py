@@ -142,11 +142,20 @@ def certify_student(student_course_data: Student_Course_Data = None):
 def update_cert(student_id, course_id, new_student_surname):
     """Update certificates for a student and return list of updated certificates."""
     try:
-        student_course_data = db_connection.get_student_course_data(student_id, course_id)
-        if not student_course_data:
+        # Retrieve student course data
+        student_course_data_dict = db_connection.get_student_course_data(student_id, course_id)
+        
+        # Check if certificate exists
+        if not student_course_data_dict:
             logger.error(f"Could not update Certificate since Certificate does not exist for "
-            f"student_id {student_id} and course_id {course_id} does not exist")
+            f"student_id {student_id} and course_id {course_id}")
             return None
+
+        # Convert dictionary to Student_Course_Data object
+        student_course_data = Student_Course_Data.from_db_student_course_data(student_course_data_dict)
+        
+        # Update surname
+        student_course_data.student_surname = new_student_surname
 
         # Delete the existing certificate
         delete_success = delete_cert(student_id, course_id)
@@ -155,14 +164,14 @@ def update_cert(student_id, course_id, new_student_surname):
             f"for student_id {student_id} and course_id {course_id}")
             return None
 
-        student_course_data.student_surname = new_student_surname
+        # Create new certificate
         new_blob_link = certify_student(student_course_data)
         if not new_blob_link:
             logger.error(f"Could not update Certificate, deleted old certificate, but could not create new one"
             f" for student_id {student_id} and course_id {course_id}")
             return None
-        else:
-            return new_blob_link
+
+        return new_blob_link
 
     except Exception as e:
         logger.error(f"Error updating student certificate for student_id {student_id} and course_id {course_id}: {str(e)}")
