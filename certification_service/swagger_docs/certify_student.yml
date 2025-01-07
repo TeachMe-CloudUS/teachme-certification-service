@@ -28,7 +28,6 @@ parameters:
           type: string
         completionDate:
           type: string
-          format: date
 definitions:
   Student_Course_Data:
     type: object
