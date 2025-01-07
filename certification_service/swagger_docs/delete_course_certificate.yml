@@ -1,24 +1,41 @@
-swagger: "2.0"
-info:
-  description: "Delete a specific certificate for a student."
-  version: "1.0.0"
-  title: "Delete Course Certificate API"
-paths:
-  /api/v1/certificates/{student_id}/{course_id}:
-    delete:
-      summary: "Delete a certificate"
-      description: "Delete a specific certificate for the given course and student."
-      parameters:
-        - name: "student_id"
-          in: "path"
-          required: true
-          type: "string"
-        - name: "course_id"
-          in: "path"
-          required: true
-          type: "string"
-      responses:
-        200:
-          description: "Certificate deleted successfully"
-        400:
-          description: "Deletion failed"
+---
+parameters:
+  - name: student_id
+    in: path
+    type: string
+    required: true
+  - name: course_id
+    in: path
+    type: string
+    required: true
+definitions:
+  Response:
+    type: object
+    properties:
+      message:
+        type: string
+        description: A message indicating the result of the deletion operation.
+        example: "Certificate deleted successfully for student_id student123 and course_id course123."
+      error:
+        type: string
+        description: An error message if something goes wrong.
+        example: "Failed to delete certificate for student_id student123 and course_id course123"
+responses:
+  200:
+    description: Successfully deleted the certificate for the specified student and course.
+    schema:
+      $ref: '#/definitions/Response'
+    examples:
+      message: "Certificate deleted successfully for student_id student123 and course_id course123."
+  404:
+    description: The specified certificate was not found for the student and course.
+    schema:
+      $ref: '#/definitions/Response'
+    examples:
+      error: "Failed to delete certificate for student_id student123 and course_id course123"
+  500:
+    description: Server error when attempting to delete the certificate.
+    schema:
+      $ref: '#/definitions/Response'
+    examples:
+      error: "Failed to delete certificate for student_id student123 and course_id course123: internal error"

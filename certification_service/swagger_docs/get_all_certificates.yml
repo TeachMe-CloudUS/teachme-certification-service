@@ -1,21 +1,56 @@
-swagger: "2.0"
-info:
-  description: "Retrieve all certificates for a student."
-  version: "1.0.0"
-  title: "Get All Student Certificates API"
-paths:
-  /api/v1/certificates/{student_id}:
-    get:
-      summary: "Get all certificates"
-      description: "Fetch all certificates for a given student ID."
-      parameters:
-        - name: "student_id"
-          in: "path"
-          required: true
-          type: "string"
-          description: "ID of the student"
-      responses:
-        200:
-          description: "A list of certificates"
-        404:
-          description: "No certificates found"
+---
+parameters:
+  - name: student_id
+    in: path
+    type: string
+    required: true
+definitions:
+  Certificate:
+    type: object
+    properties:
+      certificate_id:
+        type: string
+      student_id:
+        type: string
+      course_id:
+        type: string
+      course_name:
+        type: string
+      issue_date:
+        type: string
+        format: date
+  Response:
+    type: object
+    properties:
+      message:
+        type: string
+        description: Message indicating the result of the request.
+        example: "No certificates found for this student."
+      certificates:
+        type: array
+        items:
+          $ref: '#/definitions/Certificate'
+responses:
+  200:
+    description: A list of certificates for the specified student.
+    schema:
+      type: object
+      properties:
+        certificates:
+          type: array
+          items:
+            $ref: '#/definitions/Certificate'
+    examples:
+      certificates:
+        - certificate_id: "cert123"
+          student_id: "student123"
+          course_id: "course123"
+          course_name: "Course Name"
+          issue_date: "2023-12-31"
+  404:
+    description: No certificates found for the specified student.
+    schema:
+      $ref: '#/definitions/Response'
+    examples:
+      message: "No certificates found for this student."
+
