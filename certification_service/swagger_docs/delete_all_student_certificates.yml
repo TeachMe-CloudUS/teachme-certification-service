@@ -15,7 +15,7 @@ parameters:
         example: "Failed to delete certificates for student ID student123: error_message"
 
 tags:
-  - name: Certificates
+  - name: Certificate Operations
 
 responses:
   200:

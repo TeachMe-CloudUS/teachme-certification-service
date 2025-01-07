@@ -42,7 +42,7 @@ def create_app():
             "version": "1.0.0",
             "tags": [
                 {
-                    "name": "Certificates",
+                    "name": "Certificate Operations",
                     "description": "API for managing certificates"
                 }
             ]

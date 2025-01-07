@@ -12,7 +12,7 @@ parameters:
           example: "stu12345"
 
 tags:
-  - name: Certificates
+  - name: Certificate Operations
 
 responses:
   200:

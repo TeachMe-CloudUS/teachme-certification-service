@@ -17,7 +17,7 @@ parameters:
           example: "course101"
 
 tags:
-  - name: Certificates
+  - name: Certificate Operations
 
 responses:
   200:

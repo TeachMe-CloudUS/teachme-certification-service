@@ -5,7 +5,7 @@ parameters:
     schema:
       $ref: '#/definitions/Student_Course_Data'
 tags:
-  - name: Certificates
+  - name: Certificate Operations
 
 definitions:
   Student_Course_Data:

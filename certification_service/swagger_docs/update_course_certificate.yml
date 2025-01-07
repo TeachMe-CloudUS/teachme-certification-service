@@ -14,7 +14,7 @@ parameters:
           description: The unique identifier of the course for which the certificate is being updated.
           example: "course101"
 tags:
-  - name: Certificates  
+  - name: Certificate Operations
 
 responses:
   200:

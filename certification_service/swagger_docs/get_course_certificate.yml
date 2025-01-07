@@ -16,7 +16,7 @@ parameters:
           example: "course101"
 
 tags:
-  - name: Certificates  
+  - name: Certificate Operations  
 
 definitions:
   API_Success_Response_URL:
