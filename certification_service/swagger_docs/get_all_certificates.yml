@@ -1,56 +1,73 @@
 ---
 parameters:
-  - name: student_id
-    in: path
-    type: string
+  - name: data
+    in: body
     required: true
-definitions:
-  Certificate:
-    type: object
-    properties:
-      certificate_id:
-        type: string
-      student_id:
-        type: string
-      course_id:
-        type: string
-      course_name:
-        type: string
-      issue_date:
-        type: string
-        format: date
-  Response:
-    type: object
-    properties:
-      message:
-        type: string
-        description: Message indicating the result of the request.
-        example: "No certificates found for this student."
-      certificates:
-        type: array
-        items:
-          $ref: '#/definitions/Certificate'
-responses:
-  200:
-    description: A list of certificates for the specified student.
     schema:
       type: object
       properties:
-        certificates:
-          type: array
-          items:
-            $ref: '#/definitions/Certificate'
-    examples:
-      certificates:
-        - certificate_id: "cert123"
-          student_id: "student123"
-          course_id: "course123"
-          course_name: "Course Name"
-          issue_date: "2023-12-31"
-  404:
-    description: No certificates found for the specified student.
-    schema:
-      $ref: '#/definitions/Response'
-    examples:
-      message: "No certificates found for this student."
+        student_userId:
+          type: string
+          description:  The unique identifier of the student whose certificates are to be retrieved.
+    example: "stu12345"
 
+tags:
+  - name: Certificates
+
+responses:
+  200:
+    description: Successfull operation. Returns a list of certificates for the student.
+    schema:
+      type: array
+      items:
+        type: object
+        properties:
+          id:
+            type: string
+            description: The unique identifier of the certificate.
+            example: "607c72efc7b47e001f8a66f8"
+          name:
+            type: string
+            description: The first name of the student associated with the certificate.
+            example: "John"
+          surname:
+            type: string
+            description: The last name of the student associated with the certificate.
+            example: "Doe"
+          email:
+            type: string
+            description: The email address of the student associated with the certificate.
+            example: "john.doe@example.com"
+          courseId:
+            type: string
+            description: The unique identifier of the course associated with the certificate.
+            example: "course101"
+          courseName:
+            type: string
+            description: The name of the course associated with the certificate.
+            example: "Introduction to Python"
+          courseDescription:
+            type: string
+            description: A description of the course associated with the certificate.
+            example: "This course covers the basics of Python programming."
+          courseDuration:
+            type: string
+            description: The duration of the course.
+            example: "10 weeks"
+          courseLevel:
+            type: string
+            description: The difficulty level of the course.
+            example: "Beginner"
+          completionDate:
+            type: string
+            format: date
+            description: The date when the student completed the course.
+            example: "2023-12-15"
+          blobLink:
+            type: string
+            description: The URL where the certificate PDF can be accessed.
+            example: "http://localhost:11000/devstoreaccount1/certificates/cert12345.pdf"
+  404:
+    description: No certificates found for the specified student ID.
+  500:
+    description: Internal server error.

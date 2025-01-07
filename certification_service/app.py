@@ -2,6 +2,7 @@
 """
 This module provides a certification service using Flask.
 """
+from asn1crypto.ocsp import Certificates
 from flask import Flask
 from dotenv import load_dotenv
 from certification_service.logger import logger
@@ -35,12 +36,18 @@ def create_app():
         "specs_route": "/apidocs/"
     }
     swagger = Swagger(app, config=swagger_config, template={
-    "info": {
-        "title": "API of Teachme Certification Service",
-        "description": "API Documentation for Teachme Certification Service",
-        "version": "1.0.0"
-    },
-})
+        "info": {
+            "title": "Teachme Certification Service API",
+            "description": "API Documentation for the Teachme Certification-Service",
+            "version": "1.0.0",
+            "tags": [
+                {
+                    "name": "Certificates",
+                    "description": "API for managing certificates"
+                }
+            ]
+        }
+    })
     app.register_blueprint(certification_bp)
 
     # Start Kafka consumer

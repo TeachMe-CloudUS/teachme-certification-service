@@ -1,37 +1,26 @@
----
 parameters:
-  - name: student_id
-    in: path
-    type: string
+  - name: data
+    in: body
     required: true
-definitions:
-  Response:
-    type: object
-    properties:
-      message:
-        type: string
-        description: A message indicating the result of the deletion operation.
-        example: "No certificates found for student ID student123."
+    schema:
+      type: object
+      properties:
+        student_userId:
+          type: string
+          description: The unique identifier of the student for whom the certificate is being deleted.
       error:
         type: string
         description: An error message if something goes wrong.
         example: "Failed to delete certificates for student ID student123: error_message"
+
+tags:
+  - name: Certificates
+
 responses:
   200:
-    description: Successfully deleted the certificates for the specified student.
-    schema:
-      $ref: '#/definitions/Response'
-    examples:
-      message: "Deleted 3 certificate(s) for student ID student123."
+    description: Successfully deleted the <count> certificates for student_id.
   404:
-    description: No certificates found for the specified student.
-    schema:
-      $ref: '#/definitions/Response'
-    examples:
-      message: "No certificates found for student ID student123."
+    description: No certificates found for the specified student_id.
   500:
-    description: Server error when attempting to delete the certificates.
-    schema:
-      $ref: '#/definitions/Response'
-    examples:
-      error: "Failed to delete certificates for student ID student123: internal error"
+    description: Failed to delete certificates for student ID student123 - internal error
+

@@ -1,91 +1,88 @@
----
 parameters:
   - name: data
     in: body
     required: true
     schema:
-      type: object
-      properties:
-        student_id:
-          type: string
-        student_userId:
-          type: string
-        student_name:
-          type: string
-        student_surname:
-          type: string
-        student_email:
-          type: string
-        course_id:
-          type: string
-        course_name:
-          type: string
-        course_description:
-          type: string
-        course_duration:
-          type: string
-        course_level:
-          type: string
-        completionDate:
-          type: string
+      $ref: '#/definitions/Student_Course_Data'
+tags:
+  - name: Certificates
+
 definitions:
   Student_Course_Data:
     type: object
     properties:
       student_id:
         type: string
+        description: The unique identifier for the student.
+        example: "stu12345"
       student_userId:
         type: string
+        description: The user ID associated with the student.
+        example: "user56789"
       student_name:
         type: string
+        description: The first name of the student.
+        example: "John"
       student_surname:
         type: string
+        description: The last name of the student.
+        example: "Doe"
       student_email:
         type: string
+        description: The email address of the student.
+        example: "john.doe@example.com"
       course_id:
         type: string
+        description: The unique identifier for the course.
+        example: "course101"
       course_name:
         type: string
+        description: The name of the course.
+        example: "Introduction to Python"
       course_description:
         type: string
+        description: A brief description of the course content.
+        example: "This course covers the basics of Python programming."
       course_duration:
         type: string
+        description: The duration of the course.
+        example: "10 weeks"
       course_level:
         type: string
+        description: The difficulty level of the course (e.g., beginner, intermediate, advanced).
+        example: "Beginner"
       completionDate:
         type: string
-  Response:
+        format: date
+        description: The date when the student completed the course.
+        example: "2023-12-15"
+  API_Success_Response_URL:
     type: object
     properties:
       success:
-        type: boolean
-        description: Indicates if the certification process was successful.
-        example: true
-      Error:
         type: string
-        description: Error message in case of failure.
-        example: "Certification failed: Certificate already exists"
-      Reason:
+        description: The URL where the generated certificate can be accessed.
+        example: "http://localhost:11000/devstoreaccount1/certificates/stud_12345_course_101.pdf"
+  API_Error_Response:
+    type: object
+    properties:
+      code:
+        type: integer
+        description: An error code.
+      error:
         type: string
-        description: The reason for failure.
-        example: "Certificate already exists"
+        description: A brief error message.
+      message:
+        type: string
+        description: A detailed message about the error.
+
 responses:
   201:
     description: Certification was successful and the certificate was generated.
     schema:
-      $ref: '#/definitions/Response'
-    examples:
-      success: true
+      $ref: '#/definitions/API_Success_Response_URL'
   400:
-    description: Bad request - invalid data provided.
-    schema:
-      $ref: '#/definitions/Response'
-    examples:
-      Error: "Certification failed: Invalid data"
+    description: Certification failed - invalid data provided or missing required fields.
   409:
-    description: Conflict - The certificate already exists.
-    schema:
-      $ref: '#/definitions/Response'
-    examples:
-      Error: "Certification failed"
-      Reason: "Certificate already exists"
+    description: Certification failed - The certificate already exists.
+

@@ -8,7 +8,7 @@ version = "0.1.0"
 description = "Certification Service for TeachMe"
 requires-python = ">=3.8"
 authors = [
-    {name = "Julian Rotter, Lydia Payer", email = "julian.rotter@student.uibk.ac.at"}
+    {name = "JULYD"}
 ]
 keywords = ["certification", "service", "teachme"]
 classifiers = [

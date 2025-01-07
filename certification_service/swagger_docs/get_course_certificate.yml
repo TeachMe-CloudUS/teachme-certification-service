@@ -1,55 +1,38 @@
 ---
 parameters:
-  - name: student_id
-    in: path
-    type: string
+  - name: data
+    in: body
     required: true
-  - name: course_id
-    in: path
-    type: string
-    required: true
+    schema:
+      type: object
+      properties:
+        student_userId:
+          type: string
+          description:  The unique identifier of the student for whom the certificate is being retrieved.
+        course_id:
+          type: string
+          description: The unique identifier of the course for which the certificate is being retrieved.
+
+tags:
+  - name: Certificates  
+  
 definitions:
-  Certificate:
+  API_Success_Response_URL:
     type: object
     properties:
-      certificate_id:
+      success:
         type: string
-      student_id:
-        type: string
-      course_id:
-        type: string
-      course_name:
-        type: string
-      issue_date:
-        type: string
-        format: date
-  Response:
-    type: object
-    properties:
-      error:
-        type: string
-        description: Error message when the certificate is not found.
-        example: "Certificate not found"
-      certificate:
-        $ref: '#/definitions/Certificate'
+        description: The URL where the generated certificate can be accessed.
+        example: "http://localhost:11000/devstoreaccount1/certificates/stud_12345_course_101.pdf"    
 responses:
   200:
-    description: A certificate for the specified student and course.
+    description: A link to thecertificate for the specified student and course.
     schema:
       type: object
       properties:
         certificate:
-          $ref: '#/definitions/Certificate'
-    examples:
-      certificate:
-        certificate_id: "cert123"
-        student_id: "student123"
-        course_id: "course123"
-        course_name: "Course Name"
-        issue_date: "2023-12-31"
+          $ref: '#/definitions/API_Success_Response_URL'
+          example: "http://localhost:11000/devstoreaccount1/certificates/stud_12345_course_101.pdf"
   404:
     description: Certificate not found for the specified student and course.
-    schema:
-      $ref: '#/definitions/Response'
-    examples:
-      error: "Certificate not found"
+  
