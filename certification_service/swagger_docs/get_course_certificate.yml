@@ -9,13 +9,15 @@ parameters:
         student_userId:
           type: string
           description:  The unique identifier of the student for whom the certificate is being retrieved.
+          example: "stu12345"
         course_id:
           type: string
           description: The unique identifier of the course for which the certificate is being retrieved.
+          example: "course101"
 
 tags:
   - name: Certificates  
-  
+
 definitions:
   API_Success_Response_URL:
     type: object

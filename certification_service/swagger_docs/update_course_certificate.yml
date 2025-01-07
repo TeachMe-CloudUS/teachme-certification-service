@@ -8,9 +8,11 @@ parameters:
         student_userId:
           type: string
           description: The unique identifier of the student for whom the certificate is being updated.
+          example: "student123"
         course_id:
           type: string
           description: The unique identifier of the course for which the certificate is being updated.
+          example: "course101"
 tags:
   - name: Certificates  
 
@@ -18,10 +20,11 @@ responses:
   200:
     description: Certificate was updated successfully.
     schema:
-      $ref: '#/definitions/Response'
-    examples:
-      message: "Certificate updated successfully"
-      blob_link: "https://example.com/certificates/12345"
+      type: object
+      properties:
+        message:
+          type: string
+          example: "Certificate updated successfully: http://localhost:11000/devstoreaccount1/certificates/stud_12345_course_101.pdf"
   400:
     description: Failed to update certificate - invalid data provided.
   500:

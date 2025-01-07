@@ -8,6 +8,7 @@ parameters:
         student_userId:
           type: string
           description: The unique identifier of the student for whom the certificate is being deleted.
+          example: "student123"
       error:
         type: string
         description: An error message if something goes wrong.

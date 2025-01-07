@@ -10,9 +10,11 @@ parameters:
         student_userId:
           type: string
           description:  The unique identifier of the student for whom the certificate is deleted.
+          example: "stu12345"
         course_id:
           type: string
           description: The unique identifier of the course for which the certificate is deleted. 
+          example: "course101"
 
 tags:
   - name: Certificates

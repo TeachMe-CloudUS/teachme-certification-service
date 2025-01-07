@@ -9,7 +9,7 @@ parameters:
         student_userId:
           type: string
           description:  The unique identifier of the student whose certificates are to be retrieved.
-    example: "stu12345"
+          example: "stu12345"
 
 tags:
   - name: Certificates

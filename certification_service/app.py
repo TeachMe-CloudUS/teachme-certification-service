@@ -38,7 +38,7 @@ def create_app():
     swagger = Swagger(app, config=swagger_config, template={
         "info": {
             "title": "Teachme Certification Service API",
-            "description": "API Documentation for the Teachme Certification-Service",
+            "description": "TeachMe Certification Service is a microservice responsible for generating, managing, and validating certificates for students completing courses on the TeachMe platform. This service creates digitally signed PDF certificates, ensuring their authenticity and accessibility for successful learners. The service is built with Flask and can be containerized using Docker for seamless deployment and scalability in cloud environments.",
             "version": "1.0.0",
             "tags": [
                 {
