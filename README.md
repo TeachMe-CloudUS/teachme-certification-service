@@ -1,124 +1,118 @@
-# Student Certification Microservice
 
-## Overview
-This microservice is part of the TeachMe platform, responsible for generating and managing student certificates. It provides a RESTful API for certificate generation and verification.
+# Certification Service
+
+**Certification Service** is a microservice in the **TeachMe** project, an online learning platform offering video courses. This service is responsible for generating, managing, and validating certificates for students who successfully complete courses. Certificates are digitally signed PDF files stored securely, ensuring authenticity and accessibility.
+
+---
 
 ## Features
-- PDF Certificate Generation
-- QR Code Integration
-- Digital Signatures
-- MongoDB Storage for Certificate Records
+
+### Core Capabilities
+- **Generate Certificates**: Create signed PDF certificates for students who complete a course.
+- **View Certificates**: Retrieve all certificates for a student or a specific course.
+- **Delete Certificates**: Remove individual or all certificates for a student.
+- **Update Certificates**: Regenerate certificates to reflect updated student information.
+
+### Additional Features
+- **Data Validation**: Ensures the integrity of student and course data.
+- **Storage Solutions**:
+  - MongoDB for metadata storage.
+  - Azure Blob Storage for secure and scalable file storage.
+- **Event Notifications**:
+  - Kafka events notify students when certificates are created.
+  - Fully integrated with TeachMe's notification service and frontend.
+- **Real-Time Automation**: Automatically generates certificates upon course completion.
+
+---
+
+## Architecture
+
+The service employs a modern microservice architecture designed for scalability and reliability:
+- **APIs**: RESTful endpoints for certificate management.
+- **Data Storage**:
+  - **MongoDB**: Stores student and course metadata along with certificate links.
+  - **Azure Blob Storage**: Hosts the actual PDF certificates.
+- **Event-Driven Design**: Kafka is used for asynchronous communication and event propagation.
+- **Containerization**: Dockerized for consistent deployments across environments.
+- **Continuous Integration/Continuous Deployment**: Automated testing and builds with GitHub Actions.
+
+---
 
 ## Prerequisites
-- Docker and Docker Compose
-- Python 3.8 or higher (for local development)
-- MongoDB
 
-## Configuration
-1. Create a `.env` file in the root directory with the following variables:
-```env
-# MongoDB Configuration
-MONGO_INITDB_ROOT_USERNAME=admin
-MONGO_INITDB_ROOT_PASSWORD=rootpassword123
-MONGO_USERNAME=certification_service
-MONGO_PASSWORD=userpassword123
-MONGO_DATABASE=certificate_db
-MONGO_PORT=27017
-MONGO_HOST=mongodb
+To run the Certification Service, ensure the following are installed:
 
-# Certificate Configuration
-PFX_PASSPHRASE=mysecurepassphrase
-SIGNATURE_FIELD_NAME=Signature1
-SIGNATURE_BOX=150,30,450,90
-QR_CODE_URL=your-verification-url
+- **Development Tools**:
+  - Python 3.8+
+  - Docker & Docker Compose
+- **Services**:
+  - MongoDB
+  - Azurite (local Azure Blob Storage emulator) or Azure Blob Storage
+  - Kafka and Zookeeper
+
+---
+
+## Getting Started
+
+### Clone the Repository
+```bash
+git clone <repository_url>
+cd certification-service
 ```
 
-## Setup and Running
-
-### Using Docker (Recommended)
-1. Build and start the services:
+### Build and Run with Docker Compose
 ```bash
 docker-compose up --build
 ```
 
-2. To run in detached mode:
+### Environment Variables
+Adapt the docker-compose.yml file with the following variables for your usecase:
 ```bash
-docker-compose up -d
+MONGO_DATABASE=certificate_db
+MONGO_COLLECTION_NAME=student_certificates
+MONGODB_URI_USER=mongodb://user:pass@certification_mongodb:27017/certificate_db?authSource=admin
+AZURE_STORAGE_ACCOUNT_NAME=devstoreaccount1
+AZURE_STORAGE_ACCOUNT_KEY=your_storage_account_key
+BLOB_STORAGE_CONTAINER_NAME=certificates
+KAFKA_BOOTSTRAP_SERVER=kafka:9092
 ```
 
-### Local Development
-1. Create a virtual environment:
+### Run Tests
 ```bash
-python3 -m venv venv
+docker-compose run test_runner
 ```
 
-2. Activate the virtual environment:
-```bash
-source venv/bin/activate  # Unix/macOS
-.\venv\Scripts\activate   # Windows
-```
+---
 
-3. Install dependencies:
-```bash
-pip install -r requirements.txt
-```
+## API Documentation
 
-4. Run the service:
-```bash
-python -m flask run
-```
+The Certification Service exposes a set of RESTful APIs for certificate management. 
 
-## Monitoring and Logs
+For detailed API documentation and usage examples, visit the **Swagger UI**:
+- Swagger is available at: `http://<host>:<port>/apidocs` (e.g., `http://localhost:8080/apidocs/`).
 
-### View Container Logs
-1. Real-time logs (follow mode):
-```bash
-docker logs -f certification_service
-```
+---
 
-2. View last N lines:
-```bash
-docker logs --tail 100 certification_service
-```
+## Technologies Used
 
-3. View logs since specific time:
-```bash
-docker logs --since 1h certification_service
-```
+- **Storage**: MongoDB, Azure Blob Storage
+- **Messaging**: Apache Kafka
+- **Testing**: Pytest, Cypress (UI tests)
+- **Deployment**: Docker, GitHub Actions
 
-4. Using Docker Compose:
-```bash
-docker-compose logs -f certification_service
-```
+---
 
-## API Endpoints
+## TeachMe Integration
 
-### Generate Certificate
-```bash
-POST /certify/{user_id}
-```
+The **Certification Service** is fully integrated into the TeachMe platform:
+- Students can view and download their certificates from the TeachMe frontend.
+- Course completion events trigger certificate generation via Kafka.
+- Notifications are displayed in the TeachMe app when new certificates are available.
 
-### Verify Certificate
-```bash
-GET /verify/{certificate_id}
-```
+---
 
-## Testing
-Run the test suite:
-```bash
-pytest
-```
+## License
 
-## Certificates Storage
-Generated certificates are stored in the `certificates` directory and their metadata in MongoDB.
+This project is licensed under the [MIT License](LICENSE).
 
-## Troubleshooting
-1. If MongoDB connection fails:
-   - Check if MongoDB container is running: `docker ps`
-   - Verify environment variables in `.env`
-   - Check MongoDB logs: `docker logs certification_mongodb`
-
-2. If certificate generation fails:
-   - Ensure the certificates directory exists and is writable
-   - Verify PFX file configuration
-   - Check application logs for detailed error messages
+For questions or further assistance, please contact the TeachMe development team.
